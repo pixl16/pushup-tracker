@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="PushApp Logo.png">
+    <link rel="apple-touch-icon" href="app-icon.png">
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -17,63 +17,98 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #121212;
-            color: white;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            background-color: #121212; color: white; margin: 0; padding: 20px;
+            box-sizing: border-box; overflow: hidden;
         }
         h1 { margin: 10px 0 5px 0; font-size: 1.8rem; }
-        #counter { font-size: 5rem; font-weight: bold; color: #4CAF50; margin: 0; }
-        .status { font-size: 1rem; color: #ff9800; text-align: center; margin-bottom: 15px; }
+        .status { font-size: 1rem; color: #ff9800; text-align: center; margin-bottom: 15px; font-weight: bold; }
         
-        /* Responsive canvas container for mobile screens */
+        /* Progress Ring Styles */
+        .progress-ring {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: conic-gradient(#4CAF50 0%, #333 0%);
+            display: flex; align-items: center; justify-content: center; margin-bottom: 15px;
+            transition: background 0.3s ease;
+        }
+        .progress-inner {
+            width: 140px; height: 140px; background-color: #121212;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        #counter { font-size: 4.5rem; font-weight: bold; color: #ffffff; margin: 0; }
+        
+        /* Stats Dashboard Button */
+        .btn {
+            background-color: #333; color: white; border: none; padding: 10px 20px;
+            border-radius: 20px; font-size: 1rem; cursor: pointer; margin-bottom: 15px;
+        }
+        .btn:active { background-color: #555; }
+
+        /* Canvas Styles */
         .canvas-container {
-            width: 100%;
-            max-width: 480px;
-            aspect-ratio: 4/3;
-            position: relative;
+            width: 100%; max-width: 480px; aspect-ratio: 4/3; position: relative;
         }
         canvas {
-            width: 100%;
-            height: 100%;
-            border: 2px solid #333;
-            border-radius: 12px;
-            background-color: #000;
-            transform: scaleX(-1); /* Mirrors the camera feed so it feels natural */
+            width: 100%; height: 100%; border: 2px solid #333; border-radius: 12px;
+            background-color: #000; transform: scaleX(-1);
         }
+
+        /* Stats Modal Overlay */
+        #statsModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(18, 18, 18, 0.95); z-index: 100;
+            flex-direction: column; align-items: center; padding-top: 50px;
+        }
+        #statsModal h2 { color: #4CAF50; font-size: 2rem; margin-bottom: 20px; }
+        #historyList {
+            list-style: none; padding: 0; width: 80%; max-width: 300px;
+        }
+        #historyList li {
+            background: #222; margin-bottom: 10px; padding: 15px; border-radius: 10px;
+            display: flex; justify-content: space-between; font-size: 1.2rem;
+        }
+        .close-btn { background-color: #e53935; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <h1>PushApp</h1>
-    <div id="counter">0</div>
+    
+    <div class="progress-ring" id="progressRing">
+        <div class="progress-inner">
+            <div id="counter">0</div>
+        </div>
+    </div>
+    
     <div class="status" id="statusText">Awaiting Camera Access...</div>
+    <button class="btn" onclick="openStats()">📊 View History</button>
     
     <div class="canvas-container">
         <video id="webcam" style="display: none;" autoplay playsinline></video>
         <canvas id="output_canvas" width="640" height="480"></canvas>
     </div>
 
+    <div id="statsModal">
+        <h2>Your Progress</h2>
+        <ul id="historyList"></ul>
+        <button class="btn close-btn" onclick="closeStats()">Close</button>
+    </div>
+
     <script>
-        // --- REGISTER THE PWA SERVICE WORKER ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log("PWA Active"))
-                .catch(err => console.log("PWA Registration Failed", err));
-        }
+        // PWA Setup
+        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
 
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
         const statusText = document.getElementById('statusText');
         const counterDisplay = document.getElementById('counter');
+        const progressRing = document.getElementById('progressRing');
 
-        // --- DAILY CALENDAR STORAGE LOGIC ---
+        // Target daily goal for the progress ring
+        const DAILY_GOAL = 50; 
+
+        // Daily Calendar Logic
         const getTodayDate = () => {
             const today = new Date();
             today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
@@ -84,11 +119,31 @@
         let pushUpHistory = JSON.parse(localStorage.getItem('pushUpHistory')) || {};
         let todayCount = pushUpHistory[todayStr] || 0;
 
-        // Display today's count immediately when the app loads
-        counterDisplay.innerText = todayCount;
-        
-        let positionState = "up"; 
+        // UI Updates
+        function updateUI() {
+            counterDisplay.innerText = todayCount;
+            let progressPercentage = Math.min((todayCount / DAILY_GOAL) * 100, 100);
+            progressRing.style.background = `conic-gradient(#4CAF50 ${progressPercentage}%, #333 ${progressPercentage}%)`;
+        }
+        updateUI();
 
+        // Stats Dashboard Logic
+        function openStats() {
+            document.getElementById('statsModal').style.display = 'flex';
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            // Sort dates from newest to oldest
+            let dates = Object.keys(pushUpHistory).sort((a, b) => new Date(b) - new Date(a));
+            dates.forEach(date => {
+                let li = document.createElement('li');
+                li.innerHTML = `<span>${date}</span> <strong>${pushUpHistory[date]} reps</strong>`;
+                list.appendChild(li);
+            });
+            if(dates.length === 0) list.innerHTML = "<li>No data yet! Get pushing!</li>";
+        }
+        function closeStats() { document.getElementById('statsModal').style.display = 'none'; }
+
+        // Geometry Math
         function calculateAngle(a, b, c) {
             let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
             let angle = Math.abs(radians * 180.0 / Math.PI);
@@ -96,41 +151,60 @@
             return angle;
         }
 
+        let positionState = "up"; 
+
         function onResults(results) {
-            statusText.innerText = "Position your whole body in frame";
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
-                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
-
-                // Targets left arm points (Shoulder: 11, Elbow: 13, Wrist: 15)
+                // Get Left Side Joints
                 const shoulder = results.poseLandmarks[11];
                 const elbow = results.poseLandmarks[13];
                 const wrist = results.poseLandmarks[15];
+                const hip = results.poseLandmarks[23];
+                const ankle = results.poseLandmarks[27];
 
-                if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
-                    let angle = calculateAngle(shoulder, elbow, wrist);
+                let skeletonColor = '#FFFFFF'; // Default color
 
-                    // --- SMART PUSH-UP COUNTING LOGIC ---
-                    // 1. If you drop below 90 degrees, you are officially in the "down" position
-                    if (angle < 90 && positionState === "up") {
-                        positionState = "down";
-                    } 
-                    // 2. Once you push completely back up past 160 degrees, register the rep
-                    else if (angle > 160 && positionState === "down") {
-                        todayCount++;
-                        counterDisplay.innerText = todayCount;
+                if (shoulder.visibility > 0.5 && hip.visibility > 0.5 && ankle.visibility > 0.5) {
+                    
+                    let armAngle = calculateAngle(shoulder, elbow, wrist);
+                    let bodyAngle = calculateAngle(shoulder, hip, ankle);
+
+                    // STRICT MODE: Check if back is straight (> 150 degrees)
+                    let isBackStraight = bodyAngle > 150;
+
+                    if (!isBackStraight) {
+                        statusText.innerText = "Keep your back straight! (Form Warning)";
+                        skeletonColor = '#FF0000'; // Red for bad form
+                    } else {
+                        statusText.innerText = "Perfect Form. Keep going!";
                         
-                        // Save your progress specifically under today's date string
-                        pushUpHistory[todayStr] = todayCount;
-                        localStorage.setItem('pushUpHistory', JSON.stringify(pushUpHistory));
-                        
-                        positionState = "up";
+                        // Push-Up Logic
+                        if (armAngle < 90) {
+                            skeletonColor = '#00BFFF'; // Blue for hitting the bottom
+                            if (positionState === "up") { positionState = "down"; }
+                        } 
+                        else if (armAngle > 160) {
+                            skeletonColor = '#4CAF50'; // Green for lock out
+                            if (positionState === "down") {
+                                todayCount++;
+                                pushUpHistory[todayStr] = todayCount;
+                                localStorage.setItem('pushUpHistory', JSON.stringify(pushUpHistory));
+                                updateUI();
+                                positionState = "up";
+                            }
+                        }
                     }
+                } else {
+                    statusText.innerText = "Position full body (Side Profile) in frame";
                 }
+
+                // Draw Form-Corrected Skeleton
+                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: skeletonColor, lineWidth: 4});
+                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#ffffff', lineWidth: 2});
             }
             canvasCtx.restore();
         }
@@ -140,9 +214,7 @@
         pose.onResults(onResults);
 
         const camera = new Camera(videoElement, {
-            onFrame: async () => { await pose.send({image: videoElement}); },
-            width: 640,
-            height: 480
+            onFrame: async () => { await pose.send({image: videoElement}); }, width: 640, height: 480
         });
         camera.start();
     </script>
