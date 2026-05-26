@@ -1,0 +1,21 @@
+{
+  "name": "AI Push-Up Tracker",
+  "short_name": "PushUpAI",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "description": "Track your pushups automatically using AI camera mapping.",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192/4CAF50/FFFFFF?text=PushUp",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512/4CAF50/FFFFFF?text=PushUp",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

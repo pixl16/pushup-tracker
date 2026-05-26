@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Push-Up Tracker</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/4CAF50/FFFFFF?text=PushUp">
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        h1 { margin: 10px 0 5px 0; font-size: 1.8rem; }
+        #counter { font-size: 5rem; font-weight: bold; color: #4CAF50; margin: 0; }
+        .status { font-size: 1rem; color: #ff9800; text-align: center; margin-bottom: 15px; }
+        
+        /* Responsive canvas container for mobile screens */
+        .canvas-container {
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 4/3;
+            position: relative;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background-color: #000;
+            transform: scaleX(-1); /* Mirrors the camera feed so it feels natural */
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AI Push-Up Tracker</h1>
+    <div id="counter">0</div>
+    <div class="status" id="statusText">Awaiting Camera Access...</div>
+    
+    <div class="canvas-container">
+        <video id="webcam" style="display: none;" autoplay playsinline></video>
+        <canvas id="output_canvas" width="640" height="480"></canvas>
+    </div>
+
+    <script>
+        // --- REGISTER THE PWA SERVICE WORKER ---
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("PWA Active"))
+                .catch(err => console.log("PWA Registration Failed", err));
+        }
+
+        const videoElement = document.getElementById('webcam');
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const statusText = document.getElementById('statusText');
+        const counterDisplay = document.getElementById('counter');
+
+        let pushUpCount = 0;
+        let positionState = "up";
+
+        function calculateAngle(a, b, c) {
+            let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+            let angle = Math.abs(radians * 180.0 / Math.PI);
+            if (angle > 180.0) angle = 360 - angle;
+            return angle;
+        }
+
+        function onResults(results) {
+            statusText.innerText = "Position your whole body in frame";
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+            if (results.poseLandmarks) {
+                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
+                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
+
+                // Targets left arm points (Shoulder: 11, Elbow: 13, Wrist: 15)
+                const shoulder = results.poseLandmarks[11];
+                const elbow = results.poseLandmarks[13];
+                const wrist = results.poseLandmarks[15];
+
+                if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
+                    let angle = calculateAngle(shoulder, elbow, wrist);
+
+                    if (angle > 160) {
+                        if (positionState === "down") {
+                            pushUpCount++;
+                            counterDisplay.innerText = pushUpCount;
+                        }
+                        positionState = "up";
+                    } 
+                    if (angle < 90) {
+                        positionState = "down";
+                    }
+                }
+            }
+            canvasCtx.restore();
+        }
+
+        const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
+        pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        pose.onResults(onResults);
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => { await pose.send({image: videoElement}); },
+            width: 640,
+            height: 480
+        });
+        camera.start();
+    </script>
+</body>
+</html>
