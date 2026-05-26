@@ -50,7 +50,7 @@
 </head>
 <body>
 
-    <h1>APushApp</h1>
+    <h1>PushApp</h1>
     <div id="counter">0</div>
     <div class="status" id="statusText">Awaiting Camera Access...</div>
     
@@ -73,17 +73,21 @@
         const statusText = document.getElementById('statusText');
         const counterDisplay = document.getElementById('counter');
 
-        // Check if we have a saved count, if not, start at 0
-let pushUpCount = localStorage.getItem('totalPushUps');
-if (pushUpCount === null) {
-    pushUpCount = 0;
-} else {
-    pushUpCount = parseInt(pushUpCount); // Convert the saved text back into a number
-}
+        // --- DAILY CALENDAR STORAGE LOGIC ---
+        const getTodayDate = () => {
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            return today.toISOString().split('T')[0];
+        };
 
-// Update the screen immediately when the app loads
-counterDisplay.innerText = pushUpCount;
-        let positionState = "up";
+        const todayStr = getTodayDate();
+        let pushUpHistory = JSON.parse(localStorage.getItem('pushUpHistory')) || {};
+        let todayCount = pushUpHistory[todayStr] || 0;
+
+        // Display today's count immediately when the app loads
+        counterDisplay.innerText = todayCount;
+        
+        let positionState = "up"; 
 
         function calculateAngle(a, b, c) {
             let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
@@ -110,17 +114,21 @@ counterDisplay.innerText = pushUpCount;
                 if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
                     let angle = calculateAngle(shoulder, elbow, wrist);
 
-                   if (positionState === "down") {
-    pushUpCount++;
-    counterDisplay.innerText = pushUpCount;
-    
-    // Save the new total to the phone's memory!
-    localStorage.setItem('totalPushUps', pushUpCount);
-}
-                        positionState = "up";
-                    } 
-                    if (angle < 90) {
+                    // --- SMART PUSH-UP COUNTING LOGIC ---
+                    // 1. If you drop below 90 degrees, you are officially in the "down" position
+                    if (angle < 90 && positionState === "up") {
                         positionState = "down";
+                    } 
+                    // 2. Once you push completely back up past 160 degrees, register the rep
+                    else if (angle > 160 && positionState === "down") {
+                        todayCount++;
+                        counterDisplay.innerText = todayCount;
+                        
+                        // Save your progress specifically under today's date string
+                        pushUpHistory[todayStr] = todayCount;
+                        localStorage.setItem('pushUpHistory', JSON.stringify(pushUpHistory));
+                        
+                        positionState = "up";
                     }
                 }
             }
