@@ -1,5 +1,5 @@
 {
-  "name": "Push-Up Tracker",
+  "name": "PushApp",
   "short_name": "PushApp",
   "start_url": "index.html",
   "display": "standalone",
