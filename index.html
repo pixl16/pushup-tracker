@@ -8,7 +8,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="app-icon.png">
+    <link rel="apple-touch-icon" href="PushApp Logo.png">
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -17,98 +17,178 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex; flex-direction: column; align-items: center;
-            background-color: #121212; color: white; margin: 0; padding: 20px;
-            box-sizing: border-box; overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #121212;
+            color: white;
+            margin: 0;
+            padding: 15px;
+            box-sizing: border-box;
+            min-height: 100vh;
+            overflow-y: auto;
         }
-        h1 { margin: 10px 0 5px 0; font-size: 1.8rem; }
-        .status { font-size: 1rem; color: #ff9800; text-align: center; margin-bottom: 15px; font-weight: bold; }
+        h1 { margin: 5px 0; font-size: 1.6rem; letter-spacing: 0.5px; }
         
-        /* Progress Ring Styles */
+        /* Progress Ring Layout */
+        .counter-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+        }
         .progress-ring {
-            width: 160px; height: 160px; border-radius: 50%;
-            background: conic-gradient(#4CAF50 0%, #333 0%);
-            display: flex; align-items: center; justify-content: center; margin-bottom: 15px;
-            transition: background 0.3s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: rotate(-90deg);
         }
-        .progress-inner {
-            width: 140px; height: 140px; background-color: #121212;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform-origin: 50% 50%;
         }
-        #counter { font-size: 4.5rem; font-weight: bold; color: #ffffff; margin: 0; }
+        #counter { font-size: 4rem; font-weight: bold; color: #4CAF50; z-index: 2; }
         
-        /* Stats Dashboard Button */
-        .btn {
-            background-color: #333; color: white; border: none; padding: 10px 20px;
-            border-radius: 20px; font-size: 1rem; cursor: pointer; margin-bottom: 15px;
+        /* Goal Configurations */
+        .goal-box {
+            background-color: #1e1e1e;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #2d2d2d;
         }
-        .btn:active { background-color: #555; }
-
-        /* Canvas Styles */
+        .goal-box button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .status { font-size: 0.9rem; color: #ff9800; text-align: center; margin-bottom: 10px; }
+        
+        /* Main Camera Element */
         .canvas-container {
-            width: 100%; max-width: 480px; aspect-ratio: 4/3; position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 4/3;
+            position: relative;
+            margin-bottom: 15px;
         }
         canvas {
-            width: 100%; height: 100%; border: 2px solid #333; border-radius: 12px;
-            background-color: #000; transform: scaleX(-1);
+            width: 100%;
+            height: 100%;
+            border: 2px solid #333;
+            border-radius: 12px;
+            background-color: #000;
+            transform: scaleX(-1);
         }
 
-        /* Stats Modal Overlay */
-        #statsModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(18, 18, 18, 0.95); z-index: 100;
-            flex-direction: column; align-items: center; padding-top: 50px;
+        /* Stats Dashboard Structure */
+        .dashboard {
+            width: 100%;
+            max-width: 400px;
+            background-color: #1e1e1e;
+            border-radius: 14px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 1px solid #2d2d2d;
         }
-        #statsModal h2 { color: #4CAF50; font-size: 2rem; margin-bottom: 20px; }
-        #historyList {
-            list-style: none; padding: 0; width: 80%; max-width: 300px;
+        .dashboard h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: #fff; text-align: center;}
+        .stats-history {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        #historyList li {
-            background: #222; margin-bottom: 10px; padding: 15px; border-radius: 10px;
-            display: flex; justify-content: space-between; font-size: 1.2rem;
+        .stats-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
         }
-        .close-btn { background-color: #e53935; margin-top: 20px; }
+        .stats-date { width: 55px; color: #aaa; }
+        .stats-bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+        .stats-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.5s ease-in-out;
+        }
+        .stats-count { width: 35px; text-align: right; font-weight: bold; color: #4CAF50; }
     </style>
 </head>
 <body>
 
     <h1>PushApp</h1>
     
-    <div class="progress-ring" id="progressRing">
-        <div class="progress-inner">
-            <div id="counter">0</div>
-        </div>
+    <div class="counter-container">
+        <svg class="progress-ring" width="180" height="180">
+            <circle stroke="#2d2d2d" stroke-width="10" fill="transparent" r="80" cx="90" cy="90"/>
+            <circle class="progress-ring__circle" stroke="#4CAF50" stroke-width="10" stroke-linecap="round" fill="transparent" r="80" cx="90" cy="90"/>
+        </svg>
+        <div id="counter">0</div>
+    </div>
+
+    <div class="goal-box">
+        <span>Daily Goal: <strong id="goalDisplay" style="color: white;">50</strong></span>
+        <button onclick="changeDailyGoal()">Change</button>
     </div>
     
     <div class="status" id="statusText">Awaiting Camera Access...</div>
-    <button class="btn" onclick="openStats()">📊 View History</button>
     
     <div class="canvas-container">
         <video id="webcam" style="display: none;" autoplay playsinline></video>
         <canvas id="output_canvas" width="640" height="480"></canvas>
     </div>
 
-    <div id="statsModal">
-        <h2>Your Progress</h2>
-        <ul id="historyList"></ul>
-        <button class="btn close-btn" onclick="closeStats()">Close</button>
+    <div class="dashboard">
+        <h3>7-Day History</h3>
+        <div class="stats-history" id="statsHistoryContainer">
+            </div>
     </div>
 
     <script>
-        // PWA Setup
-        if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(err => console.log(err)); }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("PWA Active"))
+                .catch(err => console.log("PWA Registration Failed", err));
+        }
 
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
         const statusText = document.getElementById('statusText');
         const counterDisplay = document.getElementById('counter');
-        const progressRing = document.getElementById('progressRing');
+        const circle = document.querySelector('.progress-ring__circle');
+        const goalDisplay = document.getElementById('goalDisplay');
+        const statsHistoryContainer = document.getElementById('statsHistoryContainer');
 
-        // Target daily goal for the progress ring
-        const DAILY_GOAL = 50; 
+        // Progress Ring Calculations
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
 
-        // Daily Calendar Logic
+        // Initialize Internal State Fields
         const getTodayDate = () => {
             const today = new Date();
             today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
@@ -118,32 +198,67 @@
         const todayStr = getTodayDate();
         let pushUpHistory = JSON.parse(localStorage.getItem('pushUpHistory')) || {};
         let todayCount = pushUpHistory[todayStr] || 0;
+        let dailyGoal = parseInt(localStorage.getItem('dailyGoal')) || 50;
+        
+        let positionState = "up"; 
 
-        // UI Updates
+        // Update Ring State Graphics
+        function setProgress(percent) {
+            const offset = circumference - (Math.min(Math.max(percent, 0), 100) / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
         function updateUI() {
             counterDisplay.innerText = todayCount;
-            let progressPercentage = Math.min((todayCount / DAILY_GOAL) * 100, 100);
-            progressRing.style.background = `conic-gradient(#4CAF50 ${progressPercentage}%, #333 ${progressPercentage}%)`;
+            goalDisplay.innerText = dailyGoal;
+            const percentage = (todayCount / dailyGoal) * 100;
+            setProgress(percentage);
+            renderDashboard();
         }
-        updateUI();
 
-        // Stats Dashboard Logic
-        function openStats() {
-            document.getElementById('statsModal').style.display = 'flex';
-            const list = document.getElementById('historyList');
-            list.innerHTML = '';
-            // Sort dates from newest to oldest
-            let dates = Object.keys(pushUpHistory).sort((a, b) => new Date(b) - new Date(a));
-            dates.forEach(date => {
-                let li = document.createElement('li');
-                li.innerHTML = `<span>${date}</span> <strong>${pushUpHistory[date]} reps</strong>`;
-                list.appendChild(li);
-            });
-            if(dates.length === 0) list.innerHTML = "<li>No data yet! Get pushing!</li>";
+        // Live Goal Editing Trigger Routine
+        window.changeDailyGoal = function() {
+            const newGoal = prompt("Enter your new daily push-up goal:", dailyGoal);
+            if (newGoal !== null && !isNaN(newGoal) && parseInt(newGoal) > 0) {
+                dailyGoal = parseInt(newGoal);
+                localStorage.setItem('dailyGoal', dailyGoal);
+                updateUI();
+            }
+        };
+
+        // Render Dashboard History View Grid
+        function renderDashboard() {
+            statsHistoryContainer.innerHTML = '';
+            
+            // Generate list matching past 7 sequential calendar blocks
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                const dateKey = d.toISOString().split('T')[0];
+                
+                const count = pushUpHistory[dateKey] || 0;
+                
+                // Friendly labels for today/yesterday processing
+                let displayLabel = dateKey.substring(5); // MM-DD format
+                if (i === 0) displayLabel = "Today";
+                if (i === 1) displayLabel = "Yest.";
+
+                const pct = Math.min((count / dailyGoal) * 100, 100);
+
+                const row = document.createElement('div');
+                row.className = 'stats-row';
+                row.innerHTML = `
+                    <div class="stats-date">${displayLabel}</div>
+                    <div class="stats-bar-bg">
+                        <div class="stats-bar-fill" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="stats-count">${count}</div>
+                `;
+                statsHistoryContainer.appendChild(row);
+            }
         }
-        function closeStats() { document.getElementById('statsModal').style.display = 'none'; }
 
-        // Geometry Math
         function calculateAngle(a, b, c) {
             let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
             let angle = Math.abs(radians * 180.0 / Math.PI);
@@ -151,70 +266,50 @@
             return angle;
         }
 
-        let positionState = "up"; 
-
         function onResults(results) {
+            statusText.innerText = "Position your whole body in frame";
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                // Get Left Side Joints
+                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
+                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
+
                 const shoulder = results.poseLandmarks[11];
                 const elbow = results.poseLandmarks[13];
                 const wrist = results.poseLandmarks[15];
-                const hip = results.poseLandmarks[23];
-                const ankle = results.poseLandmarks[27];
 
-                let skeletonColor = '#FFFFFF'; // Default color
+                if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
+                    let angle = calculateAngle(shoulder, elbow, wrist);
 
-                if (shoulder.visibility > 0.5 && hip.visibility > 0.5 && ankle.visibility > 0.5) {
-                    
-                    let armAngle = calculateAngle(shoulder, elbow, wrist);
-                    let bodyAngle = calculateAngle(shoulder, hip, ankle);
-
-                    // STRICT MODE: Check if back is straight (> 150 degrees)
-                    let isBackStraight = bodyAngle > 150;
-
-                    if (!isBackStraight) {
-                        statusText.innerText = "Keep your back straight! (Form Warning)";
-                        skeletonColor = '#FF0000'; // Red for bad form
-                    } else {
-                        statusText.innerText = "Perfect Form. Keep going!";
+                    if (angle < 90 && positionState === "up") {
+                        positionState = "down";
+                    } 
+                    else if (angle > 160 && positionState === "down") {
+                        todayCount++;
+                        pushUpHistory[todayStr] = todayCount;
+                        localStorage.setItem('pushUpHistory', JSON.stringify(pushUpHistory));
                         
-                        // Push-Up Logic
-                        if (armAngle < 90) {
-                            skeletonColor = '#00BFFF'; // Blue for hitting the bottom
-                            if (positionState === "up") { positionState = "down"; }
-                        } 
-                        else if (armAngle > 160) {
-                            skeletonColor = '#4CAF50'; // Green for lock out
-                            if (positionState === "down") {
-                                todayCount++;
-                                pushUpHistory[todayStr] = todayCount;
-                                localStorage.setItem('pushUpHistory', JSON.stringify(pushUpHistory));
-                                updateUI();
-                                positionState = "up";
-                            }
-                        }
+                        updateUI();
+                        positionState = "up";
                     }
-                } else {
-                    statusText.innerText = "Position full body (Side Profile) in frame";
                 }
-
-                // Draw Form-Corrected Skeleton
-                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: skeletonColor, lineWidth: 4});
-                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#ffffff', lineWidth: 2});
             }
             canvasCtx.restore();
         }
+
+        // Setup Initial View Configurations
+        updateUI();
 
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         pose.onResults(onResults);
 
         const camera = new Camera(videoElement, {
-            onFrame: async () => { await pose.send({image: videoElement}); }, width: 640, height: 480
+            onFrame: async () => { await pose.send({image: videoElement}); },
+            width: 640,
+            height: 480
         });
         camera.start();
     </script>
