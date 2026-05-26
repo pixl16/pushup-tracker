@@ -73,7 +73,16 @@
         const statusText = document.getElementById('statusText');
         const counterDisplay = document.getElementById('counter');
 
-        let pushUpCount = 0;
+        // Check if we have a saved count, if not, start at 0
+let pushUpCount = localStorage.getItem('totalPushUps');
+if (pushUpCount === null) {
+    pushUpCount = 0;
+} else {
+    pushUpCount = parseInt(pushUpCount); // Convert the saved text back into a number
+}
+
+// Update the screen immediately when the app loads
+counterDisplay.innerText = pushUpCount;
         let positionState = "up";
 
         function calculateAngle(a, b, c) {
@@ -101,11 +110,13 @@
                 if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
                     let angle = calculateAngle(shoulder, elbow, wrist);
 
-                    if (angle > 160) {
-                        if (positionState === "down") {
-                            pushUpCount++;
-                            counterDisplay.innerText = pushUpCount;
-                        }
+                   if (positionState === "down") {
+    pushUpCount++;
+    counterDisplay.innerText = pushUpCount;
+    
+    // Save the new total to the phone's memory!
+    localStorage.setItem('totalPushUps', pushUpCount);
+}
                         positionState = "up";
                     } 
                     if (angle < 90) {
