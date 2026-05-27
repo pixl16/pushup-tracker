@@ -23,14 +23,14 @@
             background-color: #121212;
             color: white;
             margin: 0;
-            /* 👇 This is the magic line that fixes the overlap 👇 */
-            padding: calc(env(safe-area-inset-top, 40px) + 15px) 15px 110px 15px; 
+            /* 🖥️ Dynamic padding calculation to perfectly clear the iOS/Android status bar & notch */
+            padding: calc(env(safe-area-inset-top, 44px) + 15px) 15px 120px 15px;
             box-sizing: border-box;
             min-height: 100vh;
             overflow-y: auto;
         }
 
-        /* Premium App Entrance Splash/Landing Page Overlay */
+        /* Premium App Entrance Splash Overlay */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -71,7 +71,7 @@
             align-items: center;
             width: 100%;
             max-width: 400px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
@@ -87,19 +87,19 @@
             display: flex;
         }
 
-        /* Extended Dock Layout */
+        /* Elevated 4-Item Floating Island Dock Container */
         .floating-dock {
             position: fixed;
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 92%;
-            max-width: 380px;
-            height: 64px;
+            width: 94%;
+            max-width: 410px;
+            height: 66px;
             background: rgba(30, 30, 30, 0.75);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 32px;
+            border-radius: 33px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             justify-content: space-around;
@@ -118,15 +118,15 @@
             background: none;
             border: none;
             color: #888;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 600;
             cursor: pointer;
             gap: 4px;
             transition: color 0.2s ease, transform 0.1s ease;
         }
         .dock-item svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             fill: currentColor;
         }
         .dock-item.active-tab {
@@ -136,6 +136,68 @@
             transform: scale(0.92);
         }
 
+        .dashboard {
+            width: 100%;
+            background-color: #1e1e1e;
+            border-radius: 14px;
+            padding: 15px;
+            box-sizing: border-box;
+            border: 1px solid #2d2d2d;
+            margin-bottom: 15px;
+        }
+        .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: #fff; border-bottom: 1px solid #2d2d2d; padding-bottom: 5px; }
+
+        /* Focus Chamber Styles */
+        .focus-circle-container {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            position: relative;
+        }
+        #focusTimeDisplay {
+            font-size: 3.2rem;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+        .action-btn {
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+        }
+        .btn-start { background-color: #4CAF50; color: #000; }
+        .btn-abort { background-color: #222; color: #ff4444; border: 1px solid #333; }
+        
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            background-color: #121212;
+            border: 1px solid #2d2d2d;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .preset-btn.selected {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        /* Traditional Utility Selectors */
         .mode-container {
             display: flex;
             background-color: #1e1e1e;
@@ -157,129 +219,25 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .mode-btn.active {
-            background-color: #333;
-            color: #4CAF50;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        
-        .counter-container {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .progress-ring {
-            position: absolute;
-            top: 0;
-            left: 0;
-            transform: rotate(-90deg);
-        }
-        .progress-ring__circle {
-            transition: stroke-dashoffset 0.35s, stroke 0.5s ease;
-            transform-origin: 50% 50%;
-        }
+        .mode-btn.active { background-color: #333; color: #4CAF50; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .counter-container { position: relative; width: 180px; height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; }
+        .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+        .progress-ring__circle { transition: stroke-dashoffset 0.35s, stroke 0.5s ease; transform-origin: 50% 50%; }
         #counter { font-size: 3.8rem; font-weight: bold; color: #fff; z-index: 2; line-height: 1; }
         #counterLabel { font-size: 0.8rem; color: #888; z-index: 2; text-transform: uppercase; margin-top: 2px; }
-        
-        .goal-box {
-            background-color: #1e1e1e;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            color: #aaa;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #2d2d2d;
-        }
-        .goal-box button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        
+        .goal-box { background-color: #1e1e1e; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; color: #aaa; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border: 1px solid #2d2d2d; }
+        .goal-box button { background-color: #4CAF50; border: none; color: white; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-weight: bold; }
         .status { font-size: 0.9rem; color: #ff9800; text-align: center; margin-bottom: 10px; min-height: 20px; }
-        
-        .canvas-container {
-            width: 100%;
-            aspect-ratio: 4/3;
-            position: relative;
-            margin-bottom: 20px;
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-            border: 2px solid #333;
-            border-radius: 12px;
-            background-color: #000;
-            transform: scaleX(-1);
-        }
-
-        .dashboard {
-            width: 100%;
-            background-color: #1e1e1e;
-            border-radius: 14px;
-            padding: 15px;
-            box-sizing: border-box;
-            border: 1px solid #2d2d2d;
-            margin-bottom: 15px;
-        }
-        .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: #fff; border-bottom: 1px solid #2d2d2d; padding-bottom: 5px; }
-        
-        .heatmap-container {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-        .heatmap-day {
-            aspect-ratio: 1;
-            background-color: #2d2d2d;
-            border-radius: 4px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            color: #666;
-        }
+        .canvas-container { width: 100%; aspect-ratio: 4/3; position: relative; margin-bottom: 20px; }
+        canvas { width: 100%; height: 100%; border: 2px solid #333; border-radius: 12px; background-color: #000; transform: scaleX(-1); }
+        .heatmap-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 10px; }
+        .heatmap-day { aspect-ratio: 1; background-color: #2d2d2d; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #666; }
         .heatmap-day.active-data { color: #fff; font-weight: bold; }
-        
-        .pr-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .pr-card {
-            background: #121212;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #2d2d2d;
-        }
+        .pr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pr-card { background: #121212; padding: 10px; border-radius: 8px; border: 1px solid #2d2d2d; }
         .pr-title { font-size: 0.75rem; color: #888; text-transform: uppercase; }
         .pr-value { font-size: 1.2rem; font-weight: bold; color: #4CAF50; margin-top: 2px; }
-
-        .reminder-btn {
-            width: 100%;
-            background-color: #333;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 10px;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
+        .reminder-btn { width: 100%; background-color: #333; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -359,6 +317,27 @@
         </div>
     </div>
 
+    <div id="view-focus" class="app-view">
+        <div class="dashboard" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <h3>🛡️ The Focus Chamber</h3>
+            <p id="focusInstructions" style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
+                Lock yourself in. If you minimize this app to open social media, the field collapses and you lose **-20 XP**.
+            </p>
+
+            <div class="preset-grid" id="focusPresets">
+                <button class="preset-btn selected" onclick="setFocusDuration(25, this)">25 Min</button>
+                <button class="preset-btn" onclick="setFocusDuration(45, this)">45 Min</button>
+                <button class="preset-btn" onclick="setFocusDuration(60, this)">60 Min</button>
+            </div>
+
+            <div class="focus-circle-container">
+                <div id="focusTimeDisplay">25:00</div>
+            </div>
+
+            <button id="focusActionBtn" class="action-btn btn-start" onclick="toggleFocusChamber()">Enter Chamber (+50 XP)</button>
+        </div>
+    </div>
+
     <div class="floating-dock">
         <button class="dock-item active-tab" id="tab-routines" onclick="switchTab('routines')">
             <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
@@ -372,6 +351,10 @@
             <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
             Calendar
         </button>
+        <button class="dock-item" id="tab-focus" onclick="switchTab('focus')">
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            Focus
+        </button>
     </div>
 
     <script>
@@ -379,15 +362,12 @@
             navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Active"));
         }
 
-        // --- SPLASH HIDING SYSTEM ---
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.visibility = 'hidden';
-                }, 600);
-            }, 1200); // Shows splash logo for exactly 1.2 seconds
+                setTimeout(() => splash.style.visibility = 'hidden', 600);
+            }, 1200);
         });
 
         const videoElement = document.getElementById('webcam');
@@ -427,7 +407,13 @@
         let positionState = "up"; 
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
-        let isCameraStarted = false; // Prevents re-calling MediaPipe threads
+        let isCameraStarted = false;
+
+        // --- FOCUS CHAMBER STATE ENGINE ---
+        let focusTimer = null;
+        let focusDurationMinutes = 25;
+        let focusSecondsLeft = 25 * 60;
+        let isFocusActive = false;
 
         const morningQuests = [
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
@@ -443,28 +429,109 @@
             { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
         ];
 
-        // --- DOCK NAVIGATION WITH LAZY CAMERA ACCESS ---
         window.switchTab = function(targetView) {
             document.getElementById('view-routines').classList.toggle('active-view', targetView === 'routines');
             document.getElementById('view-exercise').classList.toggle('active-view', targetView === 'exercise');
             document.getElementById('view-calendar').classList.toggle('active-view', targetView === 'calendar');
+            document.getElementById('view-focus').classList.toggle('active-view', targetView === 'focus');
             
             document.getElementById('tab-routines').classList.toggle('active-tab', targetView === 'routines');
             document.getElementById('tab-exercise').classList.toggle('active-tab', targetView === 'exercise');
             document.getElementById('tab-calendar').classList.toggle('active-tab', targetView === 'calendar');
+            document.getElementById('tab-focus').classList.toggle('active-tab', targetView === 'focus');
 
-            // LAZY LOADING CONDITION: Engage camera stream ONLY when opening exercise tracker
             if (targetView === 'exercise' && !isCameraStarted) {
                 isCameraStarted = true;
                 statusText.innerText = "Initializing AI Vision Engine...";
                 camera.start()
                     .then(() => statusText.innerText = "Camera synchronized.")
                     .catch(err => {
-                        statusText.innerText = "Error layout: Camera blocked.";
+                        statusText.innerText = "Error: Camera blocked.";
                         isCameraStarted = false;
                     });
             }
         };
+
+        // --- FOCUS ENGINE UTILITIES ---
+        window.setFocusDuration = function(mins, element) {
+            if (isFocusActive) return;
+            focusDurationMinutes = mins;
+            focusSecondsLeft = mins * 60;
+            updateFocusDisplay();
+            
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('focusActionBtn').innerText = `Enter Chamber (+50 XP)`;
+        };
+
+        function updateFocusDisplay() {
+            const m = Math.floor(focusSecondsLeft / 60).toString().padStart(2, '0');
+            const s = (focusSecondsLeft % 60).toString().padStart(2, '0');
+            document.getElementById('focusTimeDisplay').innerText = `${m}:${s}`;
+        }
+
+        window.toggleFocusChamber = function() {
+            const btn = document.getElementById('focusActionBtn');
+            
+            if (!isFocusActive) {
+                // Engage Chamber
+                isFocusActive = true;
+                btn.innerText = "🚨 Emergency Abort Session";
+                btn.className = "action-btn btn-abort";
+                document.getElementById('focusPresets').style.opacity = "0.3";
+                document.getElementById('focusPresets').style.pointerEvents = "none";
+                
+                focusTimer = setInterval(() => {
+                    focusSecondsLeft--;
+                    updateFocusDisplay();
+                    
+                    if (focusSecondsLeft <= 0) {
+                        clearInterval(focusTimer);
+                        completeFocusSession();
+                    }
+                }, 1000);
+            } else {
+                // Emergency Abort Activated
+                let confirmation = confirm("⚠️ Emergency Abort? You will safely exit the chamber, but you won't earn any XP for this study block.");
+                if (confirmation) {
+                    resetFocusChamberUI();
+                }
+            }
+        };
+
+        function completeFocusSession() {
+            alert("🎉 Outstanding work! The Chamber has safely powered down. You maintained complete focus and earned +50 XP!");
+            addXP(50);
+            resetFocusChamberUI();
+        }
+
+        function resetFocusChamberUI() {
+            clearInterval(focusTimer);
+            isFocusActive = false;
+            focusSecondsLeft = focusDurationMinutes * 60;
+            updateFocusDisplay();
+            
+            const btn = document.getElementById('focusActionBtn');
+            btn.innerText = "Enter Chamber (+50 XP)";
+            btn.className = "action-btn btn-start";
+            
+            document.getElementById('focusPresets').style.opacity = "1";
+            document.getElementById('focusPresets').style.pointerEvents = "all";
+        }
+
+        // --- THE LOCK-IN DETECTOR (VISIBILITY API) ---
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && isFocusActive) {
+                // User closed/switched apps during focus mode! Field collapsed.
+                clearInterval(focusTimer);
+                isFocusActive = false;
+                resetFocusChamberUI();
+                
+                // Slashing character progression points as penance
+                alert("💥 FOCUS CHAMBER COLLAPSED! You left the app to check something else. Penalized: -20 XP.");
+                addXP(-20);
+            }
+        });
 
         function addXP(amount) {
             userXP += amount;
@@ -474,7 +541,7 @@
                 userXP -= xpNeeded;
                 userLevel++;
                 xpNeeded = userLevel * 100;
-                alert(`🚀 LEVEL UP! You reached Level ${userLevel}! Keep crushing your routines.`);
+                alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
             }
             if (userXP < 0) userXP = 0;
 
@@ -569,7 +636,7 @@
                 setTimeout(() => {
                     let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold';
                     let bump = currentMode === 'pushups' ? 10 : 15;
-                    let answer = confirm(`🎉 Target Met! Ready to level up your training and raise your daily ${unit} goal by +${bump}?`);
+                    let answer = confirm(`🎉 Target Met! Raise your daily ${unit} goal by +${bump}?`);
                     if(answer) {
                         goals[currentMode] += bump;
                         localStorage.setItem('pushAppGoals', JSON.stringify(goals));
@@ -589,15 +656,10 @@
                 let entry = appHistory[checkStr];
                 
                 if (checkStr === todayStr) {
-                    if (entry && entry.pushups >= goals.pushups) {
-                        currentStreak++;
-                    }
+                    if (entry && entry.pushups >= goals.pushups) currentStreak++;
                 } else {
-                    if (entry && entry.pushups >= goals.pushups) {
-                        currentStreak++;
-                    } else {
-                        break;
-                    }
+                    if (entry && entry.pushups >= goals.pushups) currentStreak++;
+                    else break;
                 }
                 dateIterator.setDate(dateIterator.getDate() - 1);
                 if(currentStreak > 365) break;
@@ -627,23 +689,14 @@
                     cell.className += ' active-data';
                     cell.style.backgroundColor = `rgba(76, 175, 80, ${Math.max(percentage, 0.25)})`;
                 }
-                if(keyStr === todayStr) {
-                    cell.style.border = '2px solid #ff9800';
-                }
+                if(keyStr === todayStr) cell.style.border = '2px solid #ff9800';
                 heatmapGrid.appendChild(cell);
             }
         }
 
         window.toggleReminders = function() {
-            if (!("Notification" in window)) {
-                alert("This device doesn't support local notifications.");
-                return;
-            }
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    alert("🔔 Accountability checks active!");
-                }
-            });
+            if (!("Notification" in window)) return;
+            Notification.requestPermission().then(p => { if (p === "granted") alert("🔔 Accountability active!"); });
         };
 
         function calculateAngle(a, b, c) {
@@ -673,19 +726,14 @@
 
                     if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
                         let angle = calculateAngle(shoulder, elbow, wrist);
-
-                        if (angle < 90 && positionState === "up") {
-                            positionState = "down";
-                        } 
+                        if (angle < 90 && positionState === "up") positionState = "down";
                         else if (angle > 160 && positionState === "down") {
                             appHistory[todayStr].pushups++;
                             localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
-                            
                             if (appHistory[todayStr].pushups > prs.maxPushups) {
                                 prs.maxPushups = appHistory[todayStr].pushups;
                                 localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                             }
-                            
                             addXP(2); 
                             updateUI();
                             triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
@@ -714,27 +762,25 @@
                                 appHistory[todayStr].plank++;
                                 currentPlankSessionSeconds++;
                                 lastPlankTickTimestamp = timeNow;
-
                                 localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
 
                                 if (currentPlankSessionSeconds > prs.longestPlank) {
                                     prs.longestPlank = currentPlankSessionSeconds;
                                     localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                                 }
-
                                 addXP(2); 
                                 updateUI();
                                 triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
                             }
                         } else {
                             statusText.style.color = "#ff9800";
-                            if(!isHorizontal) statusText.innerText = "Form Error: Position parallel to ground floor.";
-                            else statusText.innerText = "Form Error: Keep spine neutral. Prevent sagging hips.";
+                            if(!isHorizontal) statusText.innerText = "Form Error: Position parallel to floor.";
+                            else statusText.innerText = "Form Error: Keep spine neutral.";
                             lastPlankTickTimestamp = null;
                             currentPlankSessionSeconds = 0; 
                         }
                     } else {
-                        statusText.innerText = "Awaiting structural framing matrix sync...";
+                        statusText.innerText = "Awaiting skeleton framework framing match sync...";
                         lastPlankTickTimestamp = null;
                     }
                 }
@@ -755,7 +801,6 @@
             width: 640,
             height: 480
         });
-        // camera.start() loop execution block removed from main lifecycle thread to prevent premature initialization!
     </script>
 </body>
 </html>
