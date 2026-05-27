@@ -35,12 +35,11 @@
             align-items: center;
             width: 100%;
             max-width: 400px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
 
-        /* Mode Selector Toggle Switch */
         .mode-container {
             display: flex;
             background-color: #1e1e1e;
@@ -69,7 +68,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         
-        /* Dynamic Progress Ring Canvas Layout */
         .counter-container {
             position: relative;
             width: 180px;
@@ -133,7 +131,6 @@
             transform: scaleX(-1);
         }
 
-        /* Tabs/Dashboard Widgets Container */
         .dashboard {
             width: 100%;
             max-width: 400px;
@@ -146,7 +143,6 @@
         }
         .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: #fff; border-bottom: 1px solid #2d2d2d; padding-bottom: 5px; }
         
-        /* Contribution Heatmap Styles */
         .heatmap-container {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -166,7 +162,6 @@
         }
         .heatmap-day.active-data { color: #fff; font-weight: bold; }
         
-        /* PR Hall of Fame Styles */
         .pr-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -197,21 +192,22 @@
 <body>
 
     <div class="header-ui">
-        <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515); margin-bottom: 15px;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
-        <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
-    </div>
-    <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px;">
-        <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
-    </div>
-
-    <h3>🌅 Morning Routine Quests</h3>
-    <div style="display: flex; flex-direction: column; gap: 10px;" id="routineContainer">
-        </div>
-</div>
         <h1>PushApp</h1>
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
+    </div>
+
+    <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
+            <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px;">
+            <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
+        </div>
+
+        <h3>🌅 Morning Routine</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px;" id="routineContainer">
+            </div>
     </div>
 
     <div class="mode-container">
@@ -241,7 +237,7 @@
     </div>
 
     <div class="dashboard">
-        <h3 id="heatmapTitle">Push-up Activity (Past 4 Weeks)</h3>
+        <h3 id="heatmapTitle">Activity View</h3>
         <div class="heatmap-container" id="heatmapGrid"></div>
     </div>
 
@@ -257,7 +253,7 @@
                 <div class="pr-value" id="prPlank">0s</div>
             </div>
         </div>
-        <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Daily Accountability Reminders</button>
+        <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Accountability Reminders</button>
     </div>
 
     <script>
@@ -280,19 +276,6 @@
         const circumference = radius * 2 * Math.PI;
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
 
-        // --- BACKWARD DATABASE DATABASE STRUCTURE COMPATIBILITY ---
-        // Migrate old simple array schema gracefully to new comprehensive dictionary format
-        if(localStorage.getItem('pushUpHistory') && !localStorage.getItem('pushAppUnifiedHistory')) {
-            try {
-                let oldData = JSON.parse(localStorage.getItem('pushUpHistory'));
-                let migrated = {};
-                for(let key in oldData) {
-                    migrated[key] = { pushups: parseInt(oldData[key]) || 0, plank: 0 };
-                }
-                localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(migrated));
-            } catch(e) { console.log(e); }
-        }
-
         const getTodayDate = () => {
             const today = new Date();
             today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
@@ -301,24 +284,97 @@
 
         const todayStr = getTodayDate();
         
-        // Load Core application data stores
+        // Synchronized Database Initializations
         let appHistory = JSON.parse(localStorage.getItem('pushAppUnifiedHistory')) || {};
         if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
 
         let goals = JSON.parse(localStorage.getItem('pushAppGoals')) || { pushups: 50, plank: 60 };
         let prs = JSON.parse(localStorage.getItem('pushAppPRs')) || { maxPushups: 0, longestPlank: 0 };
+        
+        let userXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
+        let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
+        let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
 
-        let currentMode = "pushups"; // Options: 'pushups' | 'plank'
+        let currentMode = "pushups"; 
         let positionState = "up"; 
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
 
-        // Dynamic System Color Transitions Engine (Red -> Amber -> Green)
+        const morningQuests = [
+            { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
+            { id: 'water', label: '💧 Drink a glass of water', xp: 10 },
+            { id: 'pushupsQuest', label: '💪 10 Push-ups', xp: 25 },
+            { id: 'vups', label: '🔥 10 V-ups', xp: 25 },
+            { id: 'lunges', label: '🌾 10 Lunges', xp: 20 },
+            { id: 'clean', label: '🧹 Make sure room is clean', xp: 30 },
+            { id: 'wash', label: '🧼 Wash face', xp: 10 },
+            { id: 'moisturize', label: '🧴 Moisturize face', xp: 10 },
+            { id: 'teeth', label: '🦷 Brush teeth', xp: 10 },
+            { id: 'hair', label: '💇 Do hair', xp: 15 },
+            { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
+        ];
+
+        // --- CORE GAMIFICATION LEVEL LOGIC ENGINE ---
+        function addXP(amount) {
+            userXP += amount;
+            let xpNeeded = userLevel * 100;
+            
+            while (userXP >= xpNeeded) {
+                userXP -= xpNeeded;
+                userLevel++;
+                xpNeeded = userLevel * 100;
+                alert(`🚀 LEVEL UP! You reached Level ${userLevel}! Keep crushing your routines.`);
+            }
+            
+            // Safeguard against negative bounds during unchecking states
+            if (userXP < 0) userXP = 0;
+
+            localStorage.setItem('pushApp_XP', userXP);
+            localStorage.setItem('pushApp_Level', userLevel);
+            updateGamificationUI();
+        }
+
+        window.toggleRoutineTask = function(id, xpValue) {
+            if (completedRoutineTasks.includes(id)) {
+                completedRoutineTasks = completedRoutineTasks.filter(item => item !== id);
+                addXP(-xpValue);
+            } else {
+                completedRoutineTasks.push(id);
+                addXP(xpValue);
+            }
+            localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
+            renderMorningRoutine();
+        };
+
+        function renderMorningRoutine() {
+            const container = document.getElementById('routineContainer');
+            container.innerHTML = '';
+            
+            morningQuests.forEach(quest => {
+                const isChecked = completedRoutineTasks.includes(quest.id);
+                const row = document.createElement('div');
+                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; transition: all 0.3s; margin-bottom: 4px;`;
+                
+                row.innerHTML = `
+                    <span style="font-size: 0.9rem; color: ${isChecked ? '#aaa' : '#fff'}; text-decoration: ${isChecked ? 'line-through' : 'none'}">${quest.label}</span>
+                    <button onclick="toggleRoutineTask('${quest.id}', ${quest.xp})" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem;">
+                        ${isChecked ? '✓ Done' : `+${quest.xp} XP`}
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function updateGamificationUI() {
+            document.getElementById('levelDisplay').innerText = `LVL ${userLevel}`;
+            let xpNeeded = userLevel * 100;
+            let pct = (userXP / xpNeeded) * 100;
+            document.getElementById('xpBarFill').style.width = `${pct}%`;
+        }
+
         function setProgress(percent) {
             const offset = circumference - (Math.min(Math.max(percent, 0), 100) / 100) * circumference;
             circle.style.strokeDashoffset = offset;
-            
-            // Map percentage to clean color hue spectrums (0 = Red, 60 = Orange, 120 = Green)
             let hue = Math.min((percent / 100) * 120, 120);
             circle.style.stroke = `hsl(${hue}, 80%, 48%)`;
         }
@@ -359,13 +415,12 @@
             }
         };
 
-        // --- GOAL UP-SELLING BEHAVIOR ROUTINE ---
         function triggerGoalUpsellCheck(score, target) {
             if (score === target) {
                 setTimeout(() => {
-                    let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold duration';
+                    let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold';
                     let bump = currentMode === 'pushups' ? 10 : 15;
-                    let answer = confirm(`🎉 Target Achieved! You smashed today's ${unit} goal. Ready to unlock progress and raise your baseline by +${bump}?`);
+                    let answer = confirm(`🎉 Target Met! Ready to level up your training and raise your daily ${unit} goal by +${bump}?`);
                     if(answer) {
                         goals[currentMode] += bump;
                         localStorage.setItem('pushAppGoals', JSON.stringify(goals));
@@ -375,7 +430,6 @@
             }
         }
 
-        // --- STREAK EVALUATION ALGORITHM ---
         function calculateStreak() {
             let currentStreak = 0;
             let dateIterator = new Date();
@@ -385,7 +439,6 @@
                 let checkStr = dateIterator.toISOString().split('T')[0];
                 let entry = appHistory[checkStr];
                 
-                // If checking today, pass if it's active or if yesterday was passed
                 if (checkStr === todayStr) {
                     if (entry && entry.pushups >= goals.pushups) {
                         currentStreak++;
@@ -394,22 +447,18 @@
                     if (entry && entry.pushups >= goals.pushups) {
                         currentStreak++;
                     } else {
-                        break; // Streak broken
+                        break;
                     }
                 }
-                
-                // Roll back calendar tracking pointer exactly 1 day
                 dateIterator.setDate(dateIterator.getDate() - 1);
-                // Hard ceiling cutoff safety line
                 if(currentStreak > 365) break;
             }
             document.getElementById('streakDisplay').innerText = `🔥 ${currentStreak} Days`;
         }
 
-        // --- 28-DAY SYSTEM HEATMAP GRAPH GENERATOR ---
         function renderHeatmap() {
             heatmapGrid.innerHTML = '';
-            heatmapTitle.innerText = `${currentMode === 'pushups' ? 'Push-up' : 'Plank'} Consistency (Past 4 Weeks)`;
+            heatmapTitle.innerText = `${currentMode === 'pushups' ? 'Push-up' : 'Plank'} Activity Matrix (4 Weeks)`;
             let currentGoal = goals[currentMode];
 
             for (let i = 27; i >= 0; i--) {
@@ -436,15 +485,14 @@
             }
         }
 
-        // --- ACCOUNTABILITY PUSH REMINDERS ENGINE ---
         window.toggleReminders = function() {
             if (!("Notification" in window)) {
-                alert("This device layout web browser does not support local background notifications.");
+                alert("This device doesn't support local notifications.");
                 return;
             }
             Notification.requestPermission().then(permission => {
                 if (permission === "granted") {
-                    alert("🔔 Accountability system active! We'll prompt you locally if your streaks encounter danger.");
+                    alert("🔔 Accountability checks active!");
                 }
             });
         };
@@ -462,14 +510,13 @@
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                // Determine layout overlay coloring dynamically based on execution state
                 let skeletonColor = currentMode === 'plank' && lastPlankTickTimestamp ? '#00E5FF' : '#00FF00';
                 drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: skeletonColor, lineWidth: 4});
                 drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
 
                 if (currentMode === "pushups") {
                     statusText.style.color = "#ff9800";
-                    statusText.innerText = "Position whole body profile. Standard rep rules apply.";
+                    statusText.innerText = "Position body profile. Standard rep rules apply.";
                     
                     const shoulder = results.poseLandmarks[11];
                     const elbow = results.poseLandmarks[13];
@@ -485,12 +532,12 @@
                             appHistory[todayStr].pushups++;
                             localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
                             
-                            // Check and adjust personal best thresholds
                             if (appHistory[todayStr].pushups > prs.maxPushups) {
                                 prs.maxPushups = appHistory[todayStr].pushups;
                                 localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                             }
                             
+                            addXP(2); // Kinetic Exercise Reward
                             updateUI();
                             triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
                             positionState = "up";
@@ -498,21 +545,17 @@
                     }
                 } 
                 else if (currentMode === "plank") {
-                    // --- REVOLUTIONARY REAL-TIME PLANK KINETIC PROCESSING ENGINE ---
                     const shoulder = results.poseLandmarks[11];
                     const hip = results.poseLandmarks[23];
                     const knee = results.poseLandmarks[25];
 
                     if (shoulder.visibility > 0.5 && hip.visibility > 0.5 && knee.visibility > 0.5) {
                         let alignmentHipAngle = calculateAngle(shoulder, hip, knee);
-                        
-                        // Form Metric Check: Ensure tracking vector orientation properties match horizontal positioning thresholds
                         let isHorizontal = Math.abs(shoulder.x - knee.x) > Math.abs(shoulder.y - knee.y);
-                        // Core Position Check: Hip extension angle alignment tolerance values (Straight structural baseline range > 145)
                         let isCoreAligned = alignmentHipAngle > 145;
 
                         if (isHorizontal && isCoreAligned) {
-                            statusText.innerText = `Plank Active! Current Session: ${currentPlankSessionSeconds}s`;
+                            statusText.innerText = `Plank Active! Duration: ${currentPlankSessionSeconds}s`;
                             statusText.style.color = "#00E5FF";
 
                             let timeNow = Date.now();
@@ -530,18 +573,19 @@
                                     localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                                 }
 
+                                addXP(2); // Kinetic Time Under Tension Reward
                                 updateUI();
                                 triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
                             }
                         } else {
                             statusText.style.color = "#ff9800";
-                            if(!isHorizontal) statusText.innerText = "Form Error: Get completely flat down to floor position.";
-                            else statusText.innerText = "Form Error: Avoid bowing or sagging hips. Straighten back.";
+                            if(!isHorizontal) statusText.innerText = "Form Error: Position parallel to ground floor.";
+                            else statusText.innerText = "Form Error: Keep spine neutral. Prevent sagging hips.";
                             lastPlankTickTimestamp = null;
-                            currentPlankSessionSeconds = 0; // Reset continuous session duration calculation
+                            currentPlankSessionSeconds = 0; 
                         }
                     } else {
-                        statusText.innerText = "Awaiting full body posture recognition frame data sync...";
+                        statusText.innerText = "Awaiting structural framing matrix sync...";
                         lastPlankTickTimestamp = null;
                     }
                 }
@@ -549,7 +593,9 @@
             canvasCtx.restore();
         }
 
-        // Initialize display configuration state loops on instantiation
+        // Initialize state engine run loops
+        renderMorningRoutine();
+        updateGamificationUI();
         updateUI();
 
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
