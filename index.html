@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>PushApp</title>
     
     <link rel="manifest" href="manifest.json">
@@ -23,7 +23,7 @@
             background-color: #121212;
             color: white;
             margin: 0;
-            padding: 15px;
+            padding: 15px 15px 110px 15px; /* Extra bottom padding so content doesn't get hidden behind the floating dock */
             box-sizing: border-box;
             min-height: 100vh;
             overflow-y: auto;
@@ -40,6 +40,69 @@
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
 
+        /* SPA App View Subcontainers */
+        .app-view {
+            width: 100%;
+            max-width: 400px;
+            display: none; /* Controlled dynamically by JavaScript views system */
+            flex-direction: column;
+            align-items: center;
+        }
+        .app-view.active-view {
+            display: flex;
+        }
+
+        /* Premium iOS Floating Island Tab Bar */
+        .floating-dock {
+            position: fixed;
+            bottom: 25px; /* Elevated floating effect */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 360px;
+            height: 64px;
+            background: rgba(30, 30, 30, 0.75); /* Translucent glass effect */
+            backdrop-filter: blur(20px); /* iOS native blur styling */
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px; /* Pill-shaped island layout */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            box-sizing: border-box;
+        }
+        .dock-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            gap: 4px;
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+        .dock-item svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+            transition: transform 0.2s ease;
+        }
+        .dock-item.active-tab {
+            color: #4CAF50; /* Highlight color match */
+        }
+        .dock-item:active {
+            transform: scale(0.92);
+        }
+
+        /* Core Global Dashboards Utility Styles */
         .mode-container {
             display: flex;
             background-color: #1e1e1e;
@@ -48,7 +111,6 @@
             margin-bottom: 15px;
             border: 1px solid #2d2d2d;
             width: 100%;
-            max-width: 400px;
         }
         .mode-btn {
             flex: 1;
@@ -102,6 +164,7 @@
             gap: 10px;
             margin-bottom: 15px;
             border: 1px solid #2d2d2d;
+            width: fit-content;
         }
         .goal-box button {
             background-color: #4CAF50;
@@ -117,7 +180,6 @@
         
         .canvas-container {
             width: 100%;
-            max-width: 400px;
             aspect-ratio: 4/3;
             position: relative;
             margin-bottom: 20px;
@@ -133,7 +195,6 @@
 
         .dashboard {
             width: 100%;
-            max-width: 400px;
             background-color: #1e1e1e;
             border-radius: 14px;
             padding: 15px;
@@ -196,64 +257,83 @@
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
     </div>
 
-    <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
-            <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px;">
-            <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
-        </div>
-
-        <h3>🌅 Morning Routine</h3>
-        <div style="display: flex; flex-direction: column; gap: 8px;" id="routineContainer">
+    <div id="view-routines" class="app-view active-view">
+        <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
+                <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
             </div>
-    </div>
-
-    <div class="mode-container">
-        <button class="mode-btn active" id="btn-pushups" onclick="setMode('pushups')">Push-ups</button>
-        <button class="mode-btn" id="btn-plank" onclick="setMode('plank')">Planks</button>
-    </div>
-    
-    <div class="counter-container">
-        <svg class="progress-ring" width="180" height="180">
-            <circle stroke="#2d2d2d" stroke-width="10" fill="transparent" r="80" cx="90" cy="90"/>
-            <circle class="progress-ring__circle" stroke="#ff4444" stroke-width="10" stroke-linecap="round" fill="transparent" r="80" cx="90" cy="90"/>
-        </svg>
-        <div id="counter">0</div>
-        <div id="counterLabel">Reps</div>
-    </div>
-
-    <div class="goal-box">
-        <span>Daily Goal: <strong id="goalDisplay" style="color: white;">50</strong></span>
-        <button onclick="changeDailyGoal()">Change</button>
-    </div>
-    
-    <div class="status" id="statusText">Awaiting Camera Access...</div>
-    
-    <div class="canvas-container">
-        <video id="webcam" style="display: none;" autoplay playsinline></video>
-        <canvas id="output_canvas" width="640" height="480"></canvas>
-    </div>
-
-    <div class="dashboard">
-        <h3 id="heatmapTitle">Activity View</h3>
-        <div class="heatmap-container" id="heatmapGrid"></div>
-    </div>
-
-    <div class="dashboard">
-        <h3>Personal Records</h3>
-        <div class="pr-grid">
-            <div class="pr-card">
-                <div class="pr-title">Max Push-ups</div>
-                <div class="pr-value" id="prPushups">0 reps</div>
+            <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px;">
+                <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
             </div>
-            <div class="pr-card">
-                <div class="pr-title">Longest Plank</div>
-                <div class="pr-value" id="prPlank">0s</div>
-            </div>
+
+            <h3>🌅 Morning Routine</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer">
+                </div>
         </div>
-        <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Accountability Reminders</button>
+    </div>
+
+    <div id="view-exercise" class="app-view">
+        <div class="mode-container">
+            <button class="mode-btn active" id="btn-pushups" onclick="setMode('pushups')">Push-ups</button>
+            <button class="mode-btn" id="btn-plank" onclick="setMode('plank')">Planks</button>
+        </div>
+        
+        <div class="counter-container">
+            <svg class="progress-ring" width="180" height="180">
+                <circle stroke="#2d2d2d" stroke-width="10" fill="transparent" r="80" cx="90" cy="90"/>
+                <circle class="progress-ring__circle" stroke="#ff4444" stroke-width="10" stroke-linecap="round" fill="transparent" r="80" cx="90" cy="90"/>
+            </svg>
+            <div id="counter">0</div>
+            <div id="counterLabel">Reps</div>
+        </div>
+
+        <div class="goal-box">
+            <span>Daily Goal: <strong id="goalDisplay" style="color: white;">50</strong></span>
+            <button onclick="changeDailyGoal()">Change</button>
+        </div>
+        
+        <div class="status" id="statusText">Awaiting Camera Access...</div>
+        
+        <div class="canvas-container">
+            <video id="webcam" style="display: none;" autoplay playsinline></video>
+            <canvas id="output_canvas" width="640" height="480"></canvas>
+        </div>
+
+        <div class="dashboard">
+            <h3 id="heatmapTitle">Activity View</h3>
+            <div class="heatmap-container" id="heatmapGrid"></div>
+        </div>
+
+        <div class="dashboard">
+            <h3>Personal Records</h3>
+            <div class="pr-grid">
+                <div class="pr-card">
+                    <div class="pr-title">Max Push-ups</div>
+                    <div class="pr-value" id="prPushups">0 reps</div>
+                </div>
+                <div class="pr-card">
+                    <div class="pr-title">Longest Plank</div>
+                    <div class="pr-value" id="prPlank">0s</div>
+                </div>
+            </div>
+            <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Accountability Reminders</button>
+        </div>
+    </div>
+
+    <div class="floating-dock">
+        <button class="dock-item active-tab" id="tab-routines" onclick="switchTab('routines')">
+            <svg viewBox="0 0 24 24">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+            </svg>
+            Routines
+        </button>
+        <button class="dock-item" id="tab-exercise" onclick="switchTab('exercise')">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            Exercise
+        </button>
     </div>
 
     <script>
@@ -284,7 +364,6 @@
 
         const todayStr = getTodayDate();
         
-        // Synchronized Database Initializations
         let appHistory = JSON.parse(localStorage.getItem('pushAppUnifiedHistory')) || {};
         if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
 
@@ -314,7 +393,17 @@
             { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
         ];
 
-        // --- CORE GAMIFICATION LEVEL LOGIC ENGINE ---
+        // --- NAVIGATION ENGINE SWITCHING CONTROL LOGIC ---
+        window.switchTab = function(targetView) {
+            // Toggle Views visibility containers
+            document.getElementById('view-routines').classList.toggle('active-view', targetView === 'routines');
+            document.getElementById('view-exercise').classList.toggle('active-view', targetView === 'exercise');
+            
+            // Toggle Tab Item highlighting styling
+            document.getElementById('tab-routines').classList.toggle('active-tab', targetView === 'routines');
+            document.getElementById('tab-exercise').classList.toggle('active-tab', targetView === 'exercise');
+        };
+
         function addXP(amount) {
             userXP += amount;
             let xpNeeded = userLevel * 100;
@@ -325,8 +414,6 @@
                 xpNeeded = userLevel * 100;
                 alert(`🚀 LEVEL UP! You reached Level ${userLevel}! Keep crushing your routines.`);
             }
-            
-            // Safeguard against negative bounds during unchecking states
             if (userXP < 0) userXP = 0;
 
             localStorage.setItem('pushApp_XP', userXP);
@@ -353,11 +440,11 @@
             morningQuests.forEach(quest => {
                 const isChecked = completedRoutineTasks.includes(quest.id);
                 const row = document.createElement('div');
-                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; transition: all 0.3s; margin-bottom: 4px;`;
+                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; transition: all 0.3s; margin-bottom: 4px; width: 100%; box-sizing: border-box;`;
                 
                 row.innerHTML = `
                     <span style="font-size: 0.9rem; color: ${isChecked ? '#aaa' : '#fff'}; text-decoration: ${isChecked ? 'line-through' : 'none'}">${quest.label}</span>
-                    <button onclick="toggleRoutineTask('${quest.id}', ${quest.xp})" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem;">
+                    <button onclick="toggleRoutineTask('${quest.id}', ${quest.xp})" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem; flex-shrink: 0; margin-left: 10px;">
                         ${isChecked ? '✓ Done' : `+${quest.xp} XP`}
                     </button>
                 `;
@@ -537,7 +624,7 @@
                                 localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                             }
                             
-                            addXP(2); // Kinetic Exercise Reward
+                            addXP(2); 
                             updateUI();
                             triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
                             positionState = "up";
@@ -573,7 +660,7 @@
                                     localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                                 }
 
-                                addXP(2); // Kinetic Time Under Tension Reward
+                                addXP(2); 
                                 updateUI();
                                 triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
                             }
@@ -593,7 +680,6 @@
             canvasCtx.restore();
         }
 
-        // Initialize state engine run loops
         renderMorningRoutine();
         updateGamificationUI();
         updateUI();
