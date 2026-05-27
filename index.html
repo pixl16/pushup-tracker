@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
 
     <style>
+        /* --- GLOBAL ROOT & TRANSITIONS --- */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex;
@@ -23,14 +24,45 @@
             background-color: #121212;
             color: white;
             margin: 0;
-            /* 🖥️ Dynamic padding calculation to perfectly clear the iOS/Android status bar & notch */
             padding: calc(env(safe-area-inset-top, 44px) + 15px) 15px 120px 15px;
             box-sizing: border-box;
             min-height: 100vh;
             overflow-y: auto;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
-        /* Premium App Entrance Splash Overlay */
+        /* --- THEME OVERRIDES (THE MARKETPLACE) --- */
+        body.theme-synthwave {
+            background-color: #1a0b2e;
+            color: #ff007f;
+        }
+        body.theme-synthwave .dashboard, body.theme-synthwave .floating-dock {
+            background: rgba(43, 15, 84, 0.75);
+            border: 1px solid #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+        }
+        body.theme-synthwave .dock-item.active-tab, body.theme-synthwave .mode-btn.active, body.theme-synthwave #levelDisplay {
+            color: #00f0ff !important;
+            background-color: #3d1075 !important;
+        }
+        body.theme-synthwave #xpBarFill { background: #00f0ff !important; }
+
+        body.theme-matrix {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000000;
+            color: #00ff00;
+        }
+        body.theme-matrix .dashboard, body.theme-matrix .floating-dock {
+            background: rgba(0, 15, 0, 0.85);
+            border: 1px solid #00ff00;
+        }
+        body.theme-matrix .dock-item.active-tab, body.theme-matrix .mode-btn.active, body.theme-matrix #levelDisplay {
+            color: #00ff00 !important;
+            background-color: #002200 !important;
+        }
+        body.theme-matrix #xpBarFill { background: #00ff00 !important; }
+
+        /* Splash Overlay */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -51,8 +83,6 @@
             border-radius: 24px;
             margin-bottom: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            transform: scale(0.9);
-            animation: splashPop 0.8s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .spinner {
             width: 24px;
@@ -62,32 +92,16 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes splashPop { to { transform: scale(1); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .header-ui {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 20px;
-        }
+        .header-ui { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
 
-        .app-view {
-            width: 100%;
-            max-width: 400px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-        }
-        .app-view.active-view {
-            display: flex;
-        }
+        .app-view { width: 100%; max-width: 400px; display: none; flex-direction: column; align-items: center; }
+        .app-view.active-view { display: flex; }
 
-        /* Elevated 4-Item Floating Island Dock Container */
+        /* Dock */
         .floating-dock {
             position: fixed;
             bottom: 25px;
@@ -110,120 +124,37 @@
             box-sizing: border-box;
         }
         .dock-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 0.65rem;
-            font-weight: 600;
-            cursor: pointer;
-            gap: 4px;
-            transition: color 0.2s ease, transform 0.1s ease;
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: none; border: none; color: #888; font-size: 0.65rem; font-weight: 600; cursor: pointer; gap: 4px;
         }
-        .dock-item svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-        }
-        .dock-item.active-tab {
-            color: #4CAF50;
-        }
-        .dock-item:active {
-            transform: scale(0.92);
-        }
+        .dock-item svg { width: 18px; height: 18px; fill: currentColor; }
+        .dock-item.active-tab { color: #4CAF50; }
 
         .dashboard {
-            width: 100%;
-            background-color: #1e1e1e;
-            border-radius: 14px;
-            padding: 15px;
-            box-sizing: border-box;
-            border: 1px solid #2d2d2d;
-            margin-bottom: 15px;
+            width: 100%; background-color: #1e1e1e; border-radius: 14px; padding: 15px;
+            box-sizing: border-box; border: 1px solid #2d2d2d; margin-bottom: 15px;
+            transition: all 0.3s;
         }
-        .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; color: #fff; border-bottom: 1px solid #2d2d2d; padding-bottom: 5px; }
+        .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
 
-        /* Focus Chamber Styles */
-        .focus-circle-container {
-            width: 200px;
-            height: 200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 20px 0;
-            position: relative;
-        }
-        #focusTimeDisplay {
-            font-size: 3.2rem;
-            font-weight: bold;
-            font-variant-numeric: tabular-nums;
-        }
-        .action-btn {
-            width: 100%;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.2s ease;
-        }
+        /* Focus & Exercise Utilities */
+        .focus-circle-container { width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        #focusTimeDisplay { font-size: 3.2rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+        .action-btn { width: 100%; border: none; padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-start { background-color: #4CAF50; color: #000; }
         .btn-abort { background-color: #222; color: #ff4444; border: 1px solid #333; }
         
-        .preset-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-        .preset-btn {
-            background-color: #121212;
-            border: 1px solid #2d2d2d;
-            color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .preset-btn.selected {
-            border-color: #4CAF50;
-            color: #4CAF50;
-        }
+        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-bottom: 15px; }
+        .preset-btn { background-color: #121212; border: 1px solid #2d2d2d; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .preset-btn.selected { border-color: #4CAF50; color: #4CAF50; }
 
-        /* Traditional Utility Selectors */
-        .mode-container {
-            display: flex;
-            background-color: #1e1e1e;
-            padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #2d2d2d;
-            width: 100%;
-        }
-        .mode-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: #888;
-            padding: 8px;
-            font-weight: bold;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .mode-btn.active { background-color: #333; color: #4CAF50; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .mode-container { display: flex; background-color: #1e1e1e; padding: 4px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #2d2d2d; width: 100%; }
+        .mode-btn { flex: 1; background: none; border: none; color: #888; padding: 8px; font-weight: bold; font-size: 0.9rem; border-radius: 8px; cursor: pointer; }
+        .mode-btn.active { background-color: #333; color: #4CAF50; }
         .counter-container { position: relative; width: 180px; height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; }
         .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
         .progress-ring__circle { transition: stroke-dashoffset 0.35s, stroke 0.5s ease; transform-origin: 50% 50%; }
-        #counter { font-size: 3.8rem; font-weight: bold; color: #fff; z-index: 2; line-height: 1; }
+        #counter { font-size: 3.8rem; font-weight: bold; z-index: 2; line-height: 1; }
         #counterLabel { font-size: 0.8rem; color: #888; z-index: 2; text-transform: uppercase; margin-top: 2px; }
         .goal-box { background-color: #1e1e1e; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; color: #aaa; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border: 1px solid #2d2d2d; }
         .goal-box button { background-color: #4CAF50; border: none; color: white; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-weight: bold; }
@@ -231,13 +162,19 @@
         .canvas-container { width: 100%; aspect-ratio: 4/3; position: relative; margin-bottom: 20px; }
         canvas { width: 100%; height: 100%; border: 2px solid #333; border-radius: 12px; background-color: #000; transform: scaleX(-1); }
         .heatmap-container { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 10px; }
-        .heatmap-day { aspect-ratio: 1; background-color: #2d2d2d; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #666; }
+        .heatmap-day { aspect-ratio: 1; background-color: #2d2d2d; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; color: #666; }
         .heatmap-day.active-data { color: #fff; font-weight: bold; }
         .pr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .pr-card { background: #121212; padding: 10px; border-radius: 8px; border: 1px solid #2d2d2d; }
         .pr-title { font-size: 0.75rem; color: #888; text-transform: uppercase; }
         .pr-value { font-size: 1.2rem; font-weight: bold; color: #4CAF50; margin-top: 2px; }
         .reminder-btn { width: 100%; background-color: #333; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* Marketplace UI Cards */
+        .shop-item { display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 12px; border-radius: 8px; border: 1px solid #2d2d2d; margin-bottom: 8px; }
+        .shop-info { display: flex; flex-direction: column; }
+        .shop-title { font-weight: bold; font-size: 0.9rem; }
+        .shop-cost { font-size: 0.75rem; color: #ff9800; }
     </style>
 </head>
 <body>
@@ -258,12 +195,17 @@
                 <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
                 <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
             </div>
-            <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 15px;">
+            <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 5px;">
                 <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
             </div>
+            <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 15px; text-align: right;" id="rawXpDisplay">Wallet: 0 XP</div>
 
             <h3>🌅 Morning Routine</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 25px;" id="routineContainer"></div>
+
+            <h3>🎨 The XP Marketplace</h3>
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;" id="shopContainer">
+                </div>
         </div>
     </div>
 
@@ -320,7 +262,7 @@
     <div id="view-focus" class="app-view">
         <div class="dashboard" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
             <h3>🛡️ The Focus Chamber</h3>
-            <p id="focusInstructions" style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
+            <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
                 Lock yourself in. If you minimize this app to open social media, the field collapses and you lose **-20 XP**.
             </p>
 
@@ -370,6 +312,13 @@
             }, 1200);
         });
 
+        // --- NATIVE TACTILE HAPTICS WRAPPER ---
+        function triggerHaptic() {
+            if (navigator.vibrate) {
+                navigator.vibrate(50); // Crisp 50ms vibration pulse
+            }
+        }
+
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -403,13 +352,22 @@
         let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
         let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
 
+        // --- MARKETPLACE DATABASE ENGINE ---
+        let unlockedThemes = JSON.parse(localStorage.getItem('pushApp_UnlockedThemes')) || ['default'];
+        let activeTheme = localStorage.getItem('pushApp_ActiveTheme') || 'default';
+
+        const shopThemes = [
+            { id: 'default', label: '⬛ Default Midnight', cost: 0 },
+            { id: 'synthwave', label: '🔮 Cyberpunk Synthwave', cost: 150 },
+            { id: 'matrix', label: '📟 The Matrix Terminal', cost: 300 }
+        ];
+
         let currentMode = "pushups"; 
         let positionState = "up"; 
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
         let isCameraStarted = false;
 
-        // --- FOCUS CHAMBER STATE ENGINE ---
         let focusTimer = null;
         let focusDurationMinutes = 25;
         let focusSecondsLeft = 25 * 60;
@@ -430,6 +388,7 @@
         ];
 
         window.switchTab = function(targetView) {
+            triggerHaptic();
             document.getElementById('view-routines').classList.toggle('active-view', targetView === 'routines');
             document.getElementById('view-exercise').classList.toggle('active-view', targetView === 'exercise');
             document.getElementById('view-calendar').classList.toggle('active-view', targetView === 'calendar');
@@ -452,16 +411,75 @@
             }
         };
 
-        // --- FOCUS ENGINE UTILITIES ---
+        // --- APPLIES THE UNLOCKED THEMES DYNAMICALLY ---
+        function applyGlobalTheme(themeId) {
+            document.body.className = ''; 
+            if (themeId !== 'default') {
+                document.body.classList.add(`theme-${themeId}`);
+            }
+            activeTheme = themeId;
+            localStorage.setItem('pushApp_ActiveTheme', themeId);
+            renderMarketplace();
+        }
+
+        window.buyOrEquipTheme = function(themeId, cost) {
+            triggerHaptic();
+            if (unlockedThemes.includes(themeId)) {
+                applyGlobalTheme(themeId);
+            } else {
+                if (userXP >= cost) {
+                    userXP -= cost;
+                    unlockedThemes.push(themeId);
+                    localStorage.setItem('pushApp_UnlockedThemes', JSON.stringify(unlockedThemes));
+                    localStorage.setItem('pushApp_XP', userXP);
+                    applyGlobalTheme(themeId);
+                    updateGamificationUI();
+                    alert(`🎨 Theme Unlocked & Equipped! Your dashboard style has evolved.`);
+                } else {
+                    alert(`❌ Insufficient Funds! You need ${cost - userXP} more XP points to claim this skin.`);
+                }
+            }
+        };
+
+        function renderMarketplace() {
+            const shopContainer = document.getElementById('shopContainer');
+            shopContainer.innerHTML = '';
+
+            shopThemes.forEach(theme => {
+                const isUnlocked = unlockedThemes.includes(theme.id);
+                const isActive = activeTheme === theme.id;
+                
+                let btnLabel = `Unlock (${theme.cost} XP)`;
+                let btnColor = '#ff9800';
+                if (isUnlocked) {
+                    btnLabel = isActive ? 'Equipped' : 'Equip';
+                    btnColor = isActive ? '#222' : '#4CAF50';
+                }
+
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+                item.innerHTML = `
+                    <div class="shop-info">
+                        <span class="shop-title">${theme.label}</span>
+                        <span class="shop-cost">${isUnlocked ? 'Purchased ✓' : `${theme.cost} XP`}</span>
+                    </div>
+                    <button onclick="buyOrEquipTheme('${theme.id}', ${theme.cost})" style="background: ${btnColor}; border: none; color: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                        ${btnLabel}
+                    </button>
+                `;
+                shopContainer.appendChild(item);
+            });
+        }
+
         window.setFocusDuration = function(mins, element) {
             if (isFocusActive) return;
+            triggerHaptic();
             focusDurationMinutes = mins;
             focusSecondsLeft = mins * 60;
             updateFocusDisplay();
             
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
             element.classList.add('selected');
-            document.getElementById('focusActionBtn').innerText = `Enter Chamber (+50 XP)`;
         };
 
         function updateFocusDisplay() {
@@ -471,10 +489,10 @@
         }
 
         window.toggleFocusChamber = function() {
+            triggerHaptic();
             const btn = document.getElementById('focusActionBtn');
             
             if (!isFocusActive) {
-                // Engage Chamber
                 isFocusActive = true;
                 btn.innerText = "🚨 Emergency Abort Session";
                 btn.className = "action-btn btn-abort";
@@ -491,7 +509,6 @@
                     }
                 }, 1000);
             } else {
-                // Emergency Abort Activated
                 let confirmation = confirm("⚠️ Emergency Abort? You will safely exit the chamber, but you won't earn any XP for this study block.");
                 if (confirmation) {
                     resetFocusChamberUI();
@@ -500,6 +517,7 @@
         };
 
         function completeFocusSession() {
+            triggerHaptic();
             alert("🎉 Outstanding work! The Chamber has safely powered down. You maintained complete focus and earned +50 XP!");
             addXP(50);
             resetFocusChamberUI();
@@ -519,15 +537,11 @@
             document.getElementById('focusPresets').style.pointerEvents = "all";
         }
 
-        // --- THE LOCK-IN DETECTOR (VISIBILITY API) ---
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && isFocusActive) {
-                // User closed/switched apps during focus mode! Field collapsed.
                 clearInterval(focusTimer);
                 isFocusActive = false;
                 resetFocusChamberUI();
-                
-                // Slashing character progression points as penance
                 alert("💥 FOCUS CHAMBER COLLAPSED! You left the app to check something else. Penalized: -20 XP.");
                 addXP(-20);
             }
@@ -541,6 +555,7 @@
                 userXP -= xpNeeded;
                 userLevel++;
                 xpNeeded = userLevel * 100;
+                triggerHaptic();
                 alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
             }
             if (userXP < 0) userXP = 0;
@@ -551,6 +566,7 @@
         }
 
         window.toggleRoutineTask = function(id, xpValue) {
+            triggerHaptic();
             if (completedRoutineTasks.includes(id)) {
                 completedRoutineTasks = completedRoutineTasks.filter(item => item !== id);
                 addXP(-xpValue);
@@ -583,6 +599,7 @@
 
         function updateGamificationUI() {
             document.getElementById('levelDisplay').innerText = `LVL ${userLevel}`;
+            document.getElementById('rawXpDisplay').innerText = `Wallet: ${userXP} XP`;
             let xpNeeded = userLevel * 100;
             let pct = (userXP / xpNeeded) * 100;
             document.getElementById('xpBarFill').style.width = `${pct}%`;
@@ -596,6 +613,7 @@
         }
 
         window.setMode = function(mode) {
+            triggerHaptic();
             currentMode = mode;
             document.getElementById('btn-pushups').classList.toggle('active', mode === 'pushups');
             document.getElementById('btn-plank').classList.toggle('active', mode === 'plank');
@@ -621,6 +639,7 @@
         }
 
         window.changeDailyGoal = function() {
+            triggerHaptic();
             let currentGoal = goals[currentMode];
             let unit = currentMode === 'pushups' ? 'reps' : 'seconds';
             const newGoal = prompt(`Enter your new daily target (${unit}):`, currentGoal);
@@ -633,6 +652,7 @@
 
         function triggerGoalUpsellCheck(score, target) {
             if (score === target) {
+                triggerHaptic();
                 setTimeout(() => {
                     let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold';
                     let bump = currentMode === 'pushups' ? 10 : 15;
@@ -695,6 +715,7 @@
         }
 
         window.toggleReminders = function() {
+            triggerHaptic();
             if (!("Notification" in window)) return;
             Notification.requestPermission().then(p => { if (p === "granted") alert("🔔 Accountability active!"); });
         };
@@ -728,6 +749,7 @@
                         let angle = calculateAngle(shoulder, elbow, wrist);
                         if (angle < 90 && positionState === "up") positionState = "down";
                         else if (angle > 160 && positionState === "down") {
+                            triggerHaptic(); // Tactical buzz on completed reps
                             appHistory[todayStr].pushups++;
                             localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
                             if (appHistory[todayStr].pushups > prs.maxPushups) {
@@ -759,6 +781,7 @@
                             if (!lastPlankTickTimestamp) lastPlankTickTimestamp = timeNow;
 
                             if (timeNow - lastPlankTickTimestamp >= 1000) {
+                                triggerHaptic(); // Rhythmic buzz while holding a perfect plank
                                 appHistory[todayStr].plank++;
                                 currentPlankSessionSeconds++;
                                 lastPlankTickTimestamp = timeNow;
@@ -788,7 +811,10 @@
             canvasCtx.restore();
         }
 
+        // Initialize state configuration setup
+        applyGlobalTheme(activeTheme);
         renderMorningRoutine();
+        renderMarketplace();
         updateGamificationUI();
         updateUI();
 
