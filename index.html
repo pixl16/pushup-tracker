@@ -23,7 +23,8 @@
             background-color: #121212;
             color: white;
             margin: 0;
-            padding: 15px 15px 110px 15px;
+            /* 👇 This is the magic line that fixes the overlap 👇 */
+            padding: calc(env(safe-area-inset-top, 40px) + 15px) 15px 110px 15px; 
             box-sizing: border-box;
             min-height: 100vh;
             overflow-y: auto;
