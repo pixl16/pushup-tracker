@@ -1,0 +1,85 @@
+// Initialize Gamified State Variables
+let userXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
+let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
+let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
+
+const morningQuests = [
+    { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
+    { id: 'water', label: '💧 Drink a glass of water', xp: 10 },
+    { id: 'pushups', label: '💪 10 Push-ups', xp: 25 },
+    { id: 'vups', label: '🔥 10 V-ups', xp: 25 },
+    { id: 'lunges', label: '🦵 10 Lunges', xp: 20 },
+    { id: 'clean', label: '🧹 Make sure room is clean', xp: 30 },
+    { id: 'wash', label: '🧼 Wash face', xp: 10 },
+    { id: 'moisturize', label: '🧴 Moisturize face', xp: 10 },
+    { id: 'teeth', label: '🦷 Brush teeth', xp: 10 },
+    { id: 'hair', label: '梳 Do hair', xp: 15 },
+    { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
+];
+
+function addXP(amount) {
+    userXP += amount;
+    let xpNeeded = userLevel * 100;
+    
+    // Level Up Checking Logic Loop
+    while (userXP >= xpNeeded) {
+        userXP -= xpNeeded;
+        userLevel++;
+        xpNeeded = userLevel * 100;
+        alert(`🚀 LEVEL UP! You reached Level ${userLevel}! Keep building consistency.`);
+    }
+    
+    localStorage.setItem('pushApp_XP', userXP);
+    localStorage.setItem('pushApp_Level', userLevel);
+    updateGamificationUI();
+}
+
+function toggleRoutineTask(id, xpValue) {
+    if (completedRoutineTasks.includes(id)) {
+        // Task unchecking logic sequence
+        completedRoutineTasks = completedRoutineTasks.filter(item => item !== id);
+        addXP(-xpValue);
+    } else {
+        completedRoutineTasks.push(id);
+        addXP(xpValue);
+    }
+    localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
+    renderMorningRoutine();
+}
+
+function renderMorningRoutine() {
+    const container = document.getElementById('routineContainer');
+    container.innerHTML = '';
+    
+    morningQuests.forEach(quest => {
+        const isChecked = completedRoutineTasks.includes(quest.id);
+        const row = document.createElement('div');
+        row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; transition: all 0.3s;`;
+        
+        row.innerHTML = `
+            <span style="font-size: 0.9rem; color: ${isChecked ? '#aaa' : '#fff'}; text-decoration: ${isChecked ? 'line-through' : 'none'}">${quest.label}</span>
+            <button onclick="toggleRoutineTask('${quest.id}', ${quest.xp})" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem;">
+                ${isChecked ? '✓ Done (+'+quest.xp+' XP)' : '+'+quest.xp+' XP'}
+            </button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function updateGamificationUI() {
+    document.getElementById('levelDisplay').innerText = `LVL ${userLevel}`;
+    let xpNeeded = userLevel * 100;
+    let pct = (userXP / xpNeeded) * 100;
+    document.getElementById('xpBarFill').style.width = `${pct}%`;
+}
+
+// Hook exercise achievements into the XP Core engine!
+// (Call this function inside your existing `onResults` workout count logic!)
+function rewardExerciseXP() {
+    // Reward 2 XP per successful rep or second held
+    addXP(2);
+}
+
+// Initialize the execution loop inside your main startup sequence
+renderMorningRoutine();
+updateGamificationUI();
