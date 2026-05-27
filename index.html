@@ -23,11 +23,46 @@
             background-color: #121212;
             color: white;
             margin: 0;
-            padding: 15px 15px 110px 15px; /* Extra bottom padding so content doesn't get hidden behind the floating dock */
+            padding: 15px 15px 110px 15px;
             box-sizing: border-box;
             min-height: 100vh;
             overflow-y: auto;
         }
+
+        /* Premium App Entrance Splash/Landing Page Overlay */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #121212;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
+        }
+        .splash-logo {
+            width: 110px;
+            height: 110px;
+            border-radius: 24px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            transform: scale(0.9);
+            animation: splashPop 0.8s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2.5px solid rgba(255,255,255,0.1);
+            border-top-color: #4CAF50;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes splashPop { to { transform: scale(1); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         .header-ui {
             display: flex;
@@ -40,11 +75,10 @@
         h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
 
-        /* SPA App View Subcontainers */
         .app-view {
             width: 100%;
             max-width: 400px;
-            display: none; /* Controlled dynamically by JavaScript views system */
+            display: none;
             flex-direction: column;
             align-items: center;
         }
@@ -52,24 +86,24 @@
             display: flex;
         }
 
-        /* Premium iOS Floating Island Tab Bar */
+        /* Extended Dock Layout */
         .floating-dock {
             position: fixed;
-            bottom: 25px; /* Elevated floating effect */
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
-            max-width: 360px;
+            width: 92%;
+            max-width: 380px;
             height: 64px;
-            background: rgba(30, 30, 30, 0.75); /* Translucent glass effect */
-            backdrop-filter: blur(20px); /* iOS native blur styling */
+            background: rgba(30, 30, 30, 0.75);
+            backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 32px; /* Pill-shaped island layout */
+            border-radius: 32px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            padding: 0 10px;
+            padding: 0 5px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             z-index: 1000;
             box-sizing: border-box;
@@ -83,26 +117,24 @@
             background: none;
             border: none;
             color: #888;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
             gap: 4px;
             transition: color 0.2s ease, transform 0.1s ease;
         }
         .dock-item svg {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             fill: currentColor;
-            transition: transform 0.2s ease;
         }
         .dock-item.active-tab {
-            color: #4CAF50; /* Highlight color match */
+            color: #4CAF50;
         }
         .dock-item:active {
             transform: scale(0.92);
         }
 
-        /* Core Global Dashboards Utility Styles */
         .mode-container {
             display: flex;
             background-color: #1e1e1e;
@@ -164,7 +196,6 @@
             gap: 10px;
             margin-bottom: 15px;
             border: 1px solid #2d2d2d;
-            width: fit-content;
         }
         .goal-box button {
             background-color: #4CAF50;
@@ -252,6 +283,11 @@
 </head>
 <body>
 
+    <div id="splash-screen">
+        <img src="PushApp Logo.png" class="splash-logo" alt="PushApp Logo">
+        <div class="spinner"></div>
+    </div>
+
     <div class="header-ui">
         <h1>PushApp</h1>
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
@@ -268,8 +304,7 @@
             </div>
 
             <h3>🌅 Morning Routine</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer">
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer"></div>
         </div>
     </div>
 
@@ -293,16 +328,11 @@
             <button onclick="changeDailyGoal()">Change</button>
         </div>
         
-        <div class="status" id="statusText">Awaiting Camera Access...</div>
+        <div class="status" id="statusText">Awaiting Camera Activation...</div>
         
         <div class="canvas-container">
             <video id="webcam" style="display: none;" autoplay playsinline></video>
             <canvas id="output_canvas" width="640" height="480"></canvas>
-        </div>
-
-        <div class="dashboard">
-            <h3 id="heatmapTitle">Activity View</h3>
-            <div class="heatmap-container" id="heatmapGrid"></div>
         </div>
 
         <div class="dashboard">
@@ -321,18 +351,25 @@
         </div>
     </div>
 
+    <div id="view-calendar" class="app-view">
+        <div class="dashboard">
+            <h3 id="heatmapTitle">Activity View</h3>
+            <div class="heatmap-container" id="heatmapGrid"></div>
+        </div>
+    </div>
+
     <div class="floating-dock">
         <button class="dock-item active-tab" id="tab-routines" onclick="switchTab('routines')">
-            <svg viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
             Routines
         </button>
         <button class="dock-item" id="tab-exercise" onclick="switchTab('exercise')">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             Exercise
+        </button>
+        <button class="dock-item" id="tab-calendar" onclick="switchTab('calendar')">
+            <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
+            Calendar
         </button>
     </div>
 
@@ -340,6 +377,17 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Active"));
         }
+
+        // --- SPLASH HIDING SYSTEM ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.visibility = 'hidden';
+                }, 600);
+            }, 1200); // Shows splash logo for exactly 1.2 seconds
+        });
 
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
@@ -378,6 +426,7 @@
         let positionState = "up"; 
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
+        let isCameraStarted = false; // Prevents re-calling MediaPipe threads
 
         const morningQuests = [
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
@@ -393,15 +442,27 @@
             { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
         ];
 
-        // --- NAVIGATION ENGINE SWITCHING CONTROL LOGIC ---
+        // --- DOCK NAVIGATION WITH LAZY CAMERA ACCESS ---
         window.switchTab = function(targetView) {
-            // Toggle Views visibility containers
             document.getElementById('view-routines').classList.toggle('active-view', targetView === 'routines');
             document.getElementById('view-exercise').classList.toggle('active-view', targetView === 'exercise');
+            document.getElementById('view-calendar').classList.toggle('active-view', targetView === 'calendar');
             
-            // Toggle Tab Item highlighting styling
             document.getElementById('tab-routines').classList.toggle('active-tab', targetView === 'routines');
             document.getElementById('tab-exercise').classList.toggle('active-tab', targetView === 'exercise');
+            document.getElementById('tab-calendar').classList.toggle('active-tab', targetView === 'calendar');
+
+            // LAZY LOADING CONDITION: Engage camera stream ONLY when opening exercise tracker
+            if (targetView === 'exercise' && !isCameraStarted) {
+                isCameraStarted = true;
+                statusText.innerText = "Initializing AI Vision Engine...";
+                camera.start()
+                    .then(() => statusText.innerText = "Camera synchronized.")
+                    .catch(err => {
+                        statusText.innerText = "Error layout: Camera blocked.";
+                        isCameraStarted = false;
+                    });
+            }
         };
 
         function addXP(amount) {
@@ -693,7 +754,7 @@
             width: 640,
             height: 480
         });
-        camera.start();
+        // camera.start() loop execution block removed from main lifecycle thread to prevent premature initialization!
     </script>
 </body>
 </html>
