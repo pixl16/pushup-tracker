@@ -220,7 +220,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; // Note: Kept path consistent with your file context references
 
         // ⚠️ REPLACE THIS OBJECT WITH THE CONFIG GENERATED IN YOUR FIREBASE CONSOLE
         const firebaseConfig = {
@@ -237,7 +237,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- GLOBAL STATE STATE VARIABLES ---
+        // --- GLOBAL STATE VARIABLES ---
         let currentUser = null;
         let isSignUpMode = true;
         
@@ -259,8 +259,6 @@
         const todayStr = getTodayDate();
 
         // --- CORE AUTH PORTAL UTILITIES ---
-        // Look closely at your code and make sure "window." is written right before the function names:
-
         window.handleAuthSubmit = async function() {
             const email = document.getElementById('auth-email').value;
             const password = document.getElementById('auth-password').value;
@@ -700,6 +698,6 @@
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         pose.onResults(onResults);
         const camera = new Camera(videoElement, { onFrame: async () => { await pose.send({image: videoElement}); }, width: 640, height: 480 });
-    <script>
+    </script>
 </body>
 </html>
