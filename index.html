@@ -6,7 +6,7 @@
     <title>PushApp Cloud</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
@@ -219,8 +219,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        // Fixed: Removed 'doc' from auth module import
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"; // Note: Kept path consistent with your file context references
+        // Fixed: Moved 'doc' into its correct home under firestore module import
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ⚠️ REPLACE THIS OBJECT WITH THE CONFIG GENERATED IN YOUR FIREBASE CONSOLE
         const firebaseConfig = {
@@ -237,7 +239,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // --- GLOBAL STATE VARIABLES ---
+        // Map global variables into module scope explicitly to resolve reference errors
+        const Pose = window.Pose;
+        const Camera = window.Camera;
+        const POSE_CONNECTIONS = window.POSE_CONNECTIONS;
+        const drawConnectors = window.drawConnectors;
+
+        // --- GLOBAL STATE STATE VARIABLES ---
         let currentUser = null;
         let isSignUpMode = true;
         
