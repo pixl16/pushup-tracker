@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PushApp</title>
+    <title>PushApp Cloud</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="PushApp Logo.png">
 
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
@@ -31,131 +30,56 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        /* --- THEME OVERRIDES (THE MARKETPLACE) --- */
-        body.theme-synthwave {
-            background-color: #1a0b2e;
-            color: #ff007f;
-        }
-        body.theme-synthwave .dashboard, body.theme-synthwave .floating-dock {
-            background: rgba(43, 15, 84, 0.75);
-            border: 1px solid #00f0ff;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
-        }
-        body.theme-synthwave .dock-item.active-tab, body.theme-synthwave .mode-btn.active, body.theme-synthwave #levelDisplay {
-            color: #00f0ff !important;
-            background-color: #3d1075 !important;
-        }
+        /* --- THEME OVERRIDES --- */
+        body.theme-synthwave { background-color: #1a0b2e; color: #ff007f; }
+        body.theme-synthwave .dashboard, body.theme-synthwave .floating-dock { background: rgba(43, 15, 84, 0.75); border: 1px solid #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+        body.theme-synthwave .dock-item.active-tab, body.theme-synthwave .mode-btn.active, body.theme-synthwave #levelDisplay { color: #00f0ff !important; background-color: #3d1075 !important; }
         body.theme-synthwave #xpBarFill { background: #00f0ff !important; }
 
-        body.theme-matrix {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #000000;
-            color: #00ff00;
-        }
-        body.theme-matrix .dashboard, body.theme-matrix .floating-dock {
-            background: rgba(0, 15, 0, 0.85);
-            border: 1px solid #00ff00;
-        }
-        body.theme-matrix .dock-item.active-tab, body.theme-matrix .mode-btn.active, body.theme-matrix #levelDisplay {
-            color: #00ff00 !important;
-            background-color: #002200 !important;
-        }
+        body.theme-matrix { font-family: 'Courier New', Courier, monospace; background-color: #000000; color: #00ff00; }
+        body.theme-matrix .dashboard, body.theme-matrix .floating-dock { background: rgba(0, 15, 0, 0.85); border: 1px solid #00ff00; }
+        body.theme-matrix .dock-item.active-tab, body.theme-matrix .mode-btn.active, body.theme-matrix #levelDisplay { color: #00ff00 !important; background-color: #002200 !important; }
         body.theme-matrix #xpBarFill { background: #00ff00 !important; }
 
-        /* Splash Overlay */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: #121212;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
+        /* Auth Portal Overlay */
+        #auth-portal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #121212; z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
         }
-        .splash-logo {
-            width: 110px;
-            height: 110px;
-            border-radius: 24px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        .spinner {
-            width: 24px;
-            height: 24px;
-            border: 2.5px solid rgba(255,255,255,0.1);
-            border-top-color: #4CAF50;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .header-ui { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
-        h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
-        .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
+        .auth-card { width: 100%; max-width: 360px; background: #1e1e1e; padding: 25px; border-radius: 16px; border: 1px solid #2d2d2d; text-align: center; }
+        .auth-input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #121212; color: white; box-sizing: border-box; font-size: 1rem; }
+        .auth-btn { width: 100%; padding: 14px; background: #4CAF50; color: black; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
+        .auth-toggle { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; background: none; border: none; text-decoration: underline; }
 
+        /* Standard App UI components */
+        .header-ui { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 1.5rem; }
+        .streak-badge { font-size: 1.1rem; font-weight: bold; background: #222; padding: 4px 10px; border-radius: 12px; border: 1px solid #333; }
         .app-view { width: 100%; max-width: 400px; display: none; flex-direction: column; align-items: center; }
         .app-view.active-view { display: flex; }
-
-        /* Dock */
-        .floating-dock {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 94%;
-            max-width: 410px;
-            height: 66px;
-            background: rgba(30, 30, 30, 0.75);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 33px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 5px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            box-sizing: border-box;
-        }
-        .dock-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: none; border: none; color: #888; font-size: 0.65rem; font-weight: 600; cursor: pointer; gap: 4px;
-        }
+        .floating-dock { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 94%; max-width: 410px; height: 66px; background: rgba(30, 30, 30, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 33px; border: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; align-items: center; padding: 0 5px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); z-index: 1000; box-sizing: border-box; }
+        .dock-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: none; border: none; color: #888; font-size: 0.65rem; font-weight: 600; cursor: pointer; gap: 4px; }
         .dock-item svg { width: 18px; height: 18px; fill: currentColor; }
         .dock-item.active-tab { color: #4CAF50; }
-
-        .dashboard {
-            width: 100%; background-color: #1e1e1e; border-radius: 14px; padding: 15px;
-            box-sizing: border-box; border: 1px solid #2d2d2d; margin-bottom: 15px;
-            transition: all 0.3s;
-        }
+        .dashboard { width: 100%; background-color: #1e1e1e; border-radius: 14px; padding: 15px; box-sizing: border-box; border: 1px solid #2d2d2d; margin-bottom: 15px; }
         .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-
-        /* Focus & Exercise Utilities */
         .focus-circle-container { width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
-        #focusTimeDisplay { font-size: 3.2rem; font-weight: bold; font-variant-numeric: tabular-nums; }
+        #focusTimeDisplay { font-size: 3.2rem; font-weight: bold; }
         .action-btn { width: 100%; border: none; padding: 14px; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-start { background-color: #4CAF50; color: #000; }
         .btn-abort { background-color: #222; color: #ff4444; border: 1px solid #333; }
-        
         .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-bottom: 15px; }
         .preset-btn { background-color: #121212; border: 1px solid #2d2d2d; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .preset-btn.selected { border-color: #4CAF50; color: #4CAF50; }
-
         .mode-container { display: flex; background-color: #1e1e1e; padding: 4px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #2d2d2d; width: 100%; }
         .mode-btn { flex: 1; background: none; border: none; color: #888; padding: 8px; font-weight: bold; font-size: 0.9rem; border-radius: 8px; cursor: pointer; }
         .mode-btn.active { background-color: #333; color: #4CAF50; }
         .counter-container { position: relative; width: 180px; height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; }
         .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
         .progress-ring__circle { transition: stroke-dashoffset 0.35s, stroke 0.5s ease; transform-origin: 50% 50%; }
-        #counter { font-size: 3.8rem; font-weight: bold; z-index: 2; line-height: 1; }
-        #counterLabel { font-size: 0.8rem; color: #888; z-index: 2; text-transform: uppercase; margin-top: 2px; }
+        #counter { font-size: 3.8rem; font-weight: bold; z-index: 2; }
+        #counterLabel { font-size: 0.8rem; color: #888; z-index: 2; text-transform: uppercase; }
         .goal-box { background-color: #1e1e1e; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; color: #aaa; display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border: 1px solid #2d2d2d; }
         .goal-box button { background-color: #4CAF50; border: none; color: white; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-weight: bold; }
         .status { font-size: 0.9rem; color: #ff9800; text-align: center; margin-bottom: 10px; min-height: 20px; }
@@ -168,29 +92,36 @@
         .pr-card { background: #121212; padding: 10px; border-radius: 8px; border: 1px solid #2d2d2d; }
         .pr-title { font-size: 0.75rem; color: #888; text-transform: uppercase; }
         .pr-value { font-size: 1.2rem; font-weight: bold; color: #4CAF50; margin-top: 2px; }
-        .reminder-btn { width: 100%; background-color: #333; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        /* Marketplace UI Cards */
         .shop-item { display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 12px; border-radius: 8px; border: 1px solid #2d2d2d; margin-bottom: 8px; }
         .shop-info { display: flex; flex-direction: column; }
         .shop-title { font-weight: bold; font-size: 0.9rem; }
         .shop-cost { font-size: 0.75rem; color: #ff9800; }
+        .logout-btn { background: none; border: 1px solid #ff4444; color: #ff4444; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.75rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <img src="PushApp Logo.png" class="splash-logo" alt="PushApp Logo">
-        <div class="spinner"></div>
+    <div id="auth-portal">
+        <div class="auth-card">
+            <h2 id="auth-title">Welcome to PushApp</h2>
+            <p id="auth-subtitle" style="color: #aaa; font-size: 0.85rem; margin-bottom: 20px;">Create an account to securely track stats in the cloud</p>
+            <input type="email" id="auth-email" class="auth-input" placeholder="Email Address">
+            <input type="password" id="auth-password" class="auth-input" placeholder="Password (Min 6 chars)">
+            <button id="auth-submit-btn" class="auth-btn" onclick="handleAuthSubmit()">Sign Up</button>
+            <button class="auth-toggle" onclick="toggleAuthMode()" id="auth-toggle-btn">Already have an account? Log In</button>
+        </div>
     </div>
 
     <div class="header-ui">
-        <h1>PushApp</h1>
+        <div>
+            <h1>PushApp</h1>
+            <button class="logout-btn" onclick="logoutUser()">Log Out</button>
+        </div>
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
     </div>
 
     <div id="view-routines" class="app-view active-view">
-        <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515);">
+        <div class="dashboard">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
                 <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
@@ -204,8 +135,7 @@
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 25px;" id="routineContainer"></div>
 
             <h3>🎨 The XP Marketplace</h3>
-            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;" id="shopContainer">
-                </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;" id="shopContainer"></div>
         </div>
     </div>
 
@@ -248,7 +178,6 @@
                     <div class="pr-value" id="prPlank">0s</div>
                 </div>
             </div>
-            <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Accountability Reminders</button>
         </div>
     </div>
 
@@ -262,62 +191,199 @@
     <div id="view-focus" class="app-view">
         <div class="dashboard" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
             <h3>🛡️ The Focus Chamber</h3>
-            <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
-                Lock yourself in. If you minimize this app to open social media, the field collapses and you lose **-20 XP**.
-            </p>
-
+            <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">Minimize this app, and you drop **-20 XP**.</p>
             <div class="preset-grid" id="focusPresets">
                 <button class="preset-btn selected" onclick="setFocusDuration(25, this)">25 Min</button>
                 <button class="preset-btn" onclick="setFocusDuration(45, this)">45 Min</button>
                 <button class="preset-btn" onclick="setFocusDuration(60, this)">60 Min</button>
             </div>
-
-            <div class="focus-circle-container">
-                <div id="focusTimeDisplay">25:00</div>
-            </div>
-
+            <div class="focus-circle-container"><div id="focusTimeDisplay">25:00</div></div>
             <button id="focusActionBtn" class="action-btn btn-start" onclick="toggleFocusChamber()">Enter Chamber (+50 XP)</button>
         </div>
     </div>
 
     <div class="floating-dock">
         <button class="dock-item active-tab" id="tab-routines" onclick="switchTab('routines')">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-            Routines
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>Routines
         </button>
         <button class="dock-item" id="tab-exercise" onclick="switchTab('exercise')">
-            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            Exercise
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>Exercise
         </button>
         <button class="dock-item" id="tab-calendar" onclick="switchTab('calendar')">
-            <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-            Calendar
+            <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>Calendar
         </button>
         <button class="dock-item" id="tab-focus" onclick="switchTab('focus')">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-            Focus
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>Focus
         </button>
     </div>
 
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Active"));
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => splash.style.visibility = 'hidden', 600);
-            }, 1200);
+        // ⚠️ REPLACE THIS OBJECT WITH THE CONFIG GENERATED IN YOUR FIREBASE CONSOLE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBt3RGNsGNJXnumbNpmbf5J45je_82hNJ0",
+            authDomain: "pushapp-a448c.firebaseapp.com",
+            projectId: "pushapp-a448c",
+            storageBucket: "pushapp-a448c.firebasestorage.app",
+            messagingSenderId: "869195098196",
+            appId: "1:869195098196:web:7cb8179aaaa3eb8963a5c1"
+            measurementId: "G-3QYY1EZ7G6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- GLOBAL STATE STATE VARIABLES ---
+        let currentUser = null;
+        let isSignUpMode = true;
+        
+        let appHistory = {};
+        let goals = { pushups: 50, plank: 60 };
+        let prs = { maxPushups: 0, longestPlank: 0 };
+        let lifetimeXP = 0;
+        let walletXP = 0;
+        let userLevel = 1;
+        let unlockedThemes = ['default'];
+        let activeTheme = 'default';
+        let completedRoutineTasks = [];
+
+        const getTodayDate = () => {
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            return today.toISOString().split('T')[0];
+        };
+        const todayStr = getTodayDate();
+
+        // --- CORE AUTH PORTAL UTILITIES ---
+        window.toggleAuthMode = function() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('auth-title').innerText = isSignUpMode ? "Welcome to PushApp" : "Welcome Back";
+            document.getElementById('auth-subtitle').innerText = isSignUpMode ? "Create an account to securely track stats in the cloud" : "Log in to sync your character progression file";
+            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
+            document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
+        };
+
+        window.handleAuthSubmit = async function() {
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            if(!email || !password) return alert("Please fill out both entry parameters.");
+
+            try {
+                if(isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+            } catch(err) {
+                alert(`Auth Core Exception Failed: ${err.message}`);
+            }
+        };
+
+        window.logoutUser = function() {
+            signOut(auth).then(() => {
+                document.getElementById('auth-portal').style.display = 'flex';
+            });
+        };
+
+        // Track authentication changes
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-portal').style.display = 'none';
+                await loadUserDataFromCloud();
+            } else {
+                currentUser = null;
+                document.getElementById('auth-portal').style.display = 'flex';
+            }
         });
 
-        // --- NATIVE TACTILE HAPTICS WRAPPER ---
-        function triggerHaptic() {
-            if (navigator.vibrate) {
-                navigator.vibrate(50); // Crisp 50ms vibration pulse
+        // --- DATABASE SYNC READ/WRITE SYSTEM ---
+        async function loadUserDataFromCloud() {
+            if (!currentUser) return;
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userSnapshot = await getDoc(userDocRef);
+
+            if (userSnapshot.exists()) {
+                const data = userSnapshot.data();
+                appHistory = data.appHistory || {};
+                goals = data.goals || { pushups: 50, plank: 60 };
+                prs = data.prs || { maxPushups: 0, longestPlank: 0 };
+                lifetimeXP = data.lifetimeXP || 0;
+                walletXP = data.walletXP || 0;
+                userLevel = data.userLevel || 1;
+                unlockedThemes = data.unlockedThemes || ['default'];
+                activeTheme = data.activeTheme || 'default';
+            } else {
+                // Initialize clean cloud record for new accounts
+                appHistory = {};
+                appHistory[todayStr] = { pushups: 0, plank: 0 };
+                await setDoc(userDocRef, {
+                    email: currentUser.email,
+                    appHistory, goals, prs, lifetimeXP, walletXP, userLevel, unlockedThemes, activeTheme
+                });
             }
+
+            if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
+            completedRoutineTasks = appHistory[todayStr].completedRoutines || [];
+
+            applyGlobalTheme(activeTheme);
+            renderMorningRoutine();
+            renderMarketplace();
+            updateGamificationUI();
+            updateUI();
         }
+
+        async function saveUserDataToCloud() {
+            if (!currentUser) return;
+            appHistory[todayStr].completedRoutines = completedRoutineTasks;
+            const userDocRef = doc(db, "users", currentUser.uid);
+            await updateDoc(userDocRef, {
+                appHistory, goals, prs, lifetimeXP, walletXP, userLevel, unlockedThemes, activeTheme
+            });
+        }
+
+        // --- BALANCED GAME ECONOMY FUNCTIONS ---
+        window.addXP = async function(amount) {
+            lifetimeXP += amount;
+            walletXP += amount;
+            if(walletXP < 0) walletXP = 0;
+            if(lifetimeXP < 0) lifetimeXP = 0;
+
+            let newLevel = Math.floor(lifetimeXP / 100) + 1;
+            if (newLevel > userLevel) {
+                userLevel = newLevel;
+                triggerHaptic();
+                alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
+            }
+            updateGamificationUI();
+            await saveUserDataToCloud();
+        };
+
+        window.buyOrEquipTheme = async function(themeId, cost) {
+            triggerHaptic();
+            if (unlockedThemes.includes(themeId)) {
+                applyGlobalTheme(themeId);
+                await saveUserDataToCloud();
+            } else {
+                if (walletXP >= cost) {
+                    walletXP -= cost;
+                    unlockedThemes.push(themeId);
+                    applyGlobalTheme(themeId);
+                    updateGamificationUI();
+                    await saveUserDataToCloud();
+                    alert(`🎨 Theme Unlocked & Equipped!`);
+                } else {
+                    alert(`❌ Insufficient Funds! You need ${cost - walletXP} more XP.`);
+                }
+            }
+        };
+
+        // --- STANDARD LOCAL APP LOGIC ATTACHED GLOBALLY ---
+        function triggerHaptic() { if (navigator.vibrate) navigator.vibrate(50); }
 
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
@@ -334,28 +400,6 @@
         const circumference = radius * 2 * Math.PI;
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
 
-        const getTodayDate = () => {
-            const today = new Date();
-            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-            return today.toISOString().split('T')[0];
-        };
-
-        const todayStr = getTodayDate();
-        
-        let appHistory = JSON.parse(localStorage.getItem('pushAppUnifiedHistory')) || {};
-        if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
-
-        let goals = JSON.parse(localStorage.getItem('pushAppGoals')) || { pushups: 50, plank: 60 };
-        let prs = JSON.parse(localStorage.getItem('pushAppPRs')) || { maxPushups: 0, longestPlank: 0 };
-        
-        let userXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
-        let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
-        let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
-
-        // --- MARKETPLACE DATABASE ENGINE ---
-        let unlockedThemes = JSON.parse(localStorage.getItem('pushApp_UnlockedThemes')) || ['default'];
-        let activeTheme = localStorage.getItem('pushApp_ActiveTheme') || 'default';
-
         const shopThemes = [
             { id: 'default', label: '⬛ Default Midnight', cost: 0 },
             { id: 'synthwave', label: '🔮 Cyberpunk Synthwave', cost: 150 },
@@ -367,7 +411,6 @@
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
         let isCameraStarted = false;
-
         let focusTimer = null;
         let focusDurationMinutes = 25;
         let focusSecondsLeft = 25 * 60;
@@ -377,14 +420,7 @@
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
             { id: 'water', label: '💧 Drink a glass of water', xp: 10 },
             { id: 'pushupsQuest', label: '💪 10 Push-ups', xp: 25 },
-            { id: 'vups', label: '🔥 10 V-ups', xp: 25 },
-            { id: 'lunges', label: '🌾 10 Lunges', xp: 20 },
-            { id: 'clean', label: '🧹 Make sure room is clean', xp: 30 },
-            { id: 'wash', label: '🧼 Wash face', xp: 10 },
-            { id: 'moisturize', label: '🧴 Moisturize face', xp: 10 },
-            { id: 'teeth', label: '🦷 Brush teeth', xp: 10 },
-            { id: 'hair', label: '💇 Do hair', xp: 15 },
-            { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
+            { id: 'clean', label: '🧹 Clean workspace', xp: 30 }
         ];
 
         window.switchTab = function(targetView) {
@@ -401,61 +437,30 @@
 
             if (targetView === 'exercise' && !isCameraStarted) {
                 isCameraStarted = true;
-                statusText.innerText = "Initializing AI Vision Engine...";
-                camera.start()
-                    .then(() => statusText.innerText = "Camera synchronized.")
-                    .catch(err => {
-                        statusText.innerText = "Error: Camera blocked.";
-                        isCameraStarted = false;
-                    });
+                camera.start().catch(() => { isCameraStarted = false; });
             }
         };
 
-        // --- APPLIES THE UNLOCKED THEMES DYNAMICALLY ---
         function applyGlobalTheme(themeId) {
             document.body.className = ''; 
-            if (themeId !== 'default') {
-                document.body.classList.add(`theme-${themeId}`);
-            }
+            if (themeId !== 'default') document.body.classList.add(`theme-${themeId}`);
             activeTheme = themeId;
-            localStorage.setItem('pushApp_ActiveTheme', themeId);
             renderMarketplace();
         }
 
-        window.buyOrEquipTheme = function(themeId, cost) {
-            triggerHaptic();
-            if (unlockedThemes.includes(themeId)) {
-                applyGlobalTheme(themeId);
-            } else {
-                if (userXP >= cost) {
-                    userXP -= cost;
-                    unlockedThemes.push(themeId);
-                    localStorage.setItem('pushApp_UnlockedThemes', JSON.stringify(unlockedThemes));
-                    localStorage.setItem('pushApp_XP', userXP);
-                    applyGlobalTheme(themeId);
-                    updateGamificationUI();
-                    alert(`🎨 Theme Unlocked & Equipped! Your dashboard style has evolved.`);
-                } else {
-                    alert(`❌ Insufficient Funds! You need ${cost - userXP} more XP points to claim this skin.`);
-                }
-            }
-        };
-
         function renderMarketplace() {
             const shopContainer = document.getElementById('shopContainer');
+            if(!shopContainer) return;
             shopContainer.innerHTML = '';
-
             shopThemes.forEach(theme => {
                 const isUnlocked = unlockedThemes.includes(theme.id);
                 const isActive = activeTheme === theme.id;
-                
                 let btnLabel = `Unlock (${theme.cost} XP)`;
                 let btnColor = '#ff9800';
                 if (isUnlocked) {
                     btnLabel = isActive ? 'Equipped' : 'Equip';
                     btnColor = isActive ? '#222' : '#4CAF50';
                 }
-
                 const item = document.createElement('div');
                 item.className = 'shop-item';
                 item.innerHTML = `
@@ -463,11 +468,12 @@
                         <span class="shop-title">${theme.label}</span>
                         <span class="shop-cost">${isUnlocked ? 'Purchased ✓' : `${theme.cost} XP`}</span>
                     </div>
-                    <button onclick="buyOrEquipTheme('${theme.id}', ${theme.cost})" style="background: ${btnColor}; border: none; color: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                    <button id="btn-theme-${theme.id}" style="background: ${btnColor}; border: none; color: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
                         ${btnLabel}
                     </button>
                 `;
                 shopContainer.appendChild(item);
+                document.getElementById(`btn-theme-${theme.id}`).onclick = () => window.buyOrEquipTheme(theme.id, theme.cost);
             });
         }
 
@@ -477,7 +483,6 @@
             focusDurationMinutes = mins;
             focusSecondsLeft = mins * 60;
             updateFocusDisplay();
-            
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('selected'));
             element.classList.add('selected');
         };
@@ -491,125 +496,78 @@
         window.toggleFocusChamber = function() {
             triggerHaptic();
             const btn = document.getElementById('focusActionBtn');
-            
             if (!isFocusActive) {
                 isFocusActive = true;
                 btn.innerText = "🚨 Emergency Abort Session";
                 btn.className = "action-btn btn-abort";
-                document.getElementById('focusPresets').style.opacity = "0.3";
-                document.getElementById('focusPresets').style.pointerEvents = "none";
-                
                 focusTimer = setInterval(() => {
                     focusSecondsLeft--;
                     updateFocusDisplay();
-                    
                     if (focusSecondsLeft <= 0) {
                         clearInterval(focusTimer);
-                        completeFocusSession();
+                        window.addXP(50);
+                        resetFocusChamberUI();
                     }
                 }, 1000);
             } else {
-                let confirmation = confirm("⚠️ Emergency Abort? You will safely exit the chamber, but you won't earn any XP for this study block.");
-                if (confirmation) {
-                    resetFocusChamberUI();
-                }
+                if (confirm("⚠️ Emergency Abort? You will forfeit XP benefits.")) resetFocusChamberUI();
             }
         };
-
-        function completeFocusSession() {
-            triggerHaptic();
-            alert("🎉 Outstanding work! The Chamber has safely powered down. You maintained complete focus and earned +50 XP!");
-            addXP(50);
-            resetFocusChamberUI();
-        }
 
         function resetFocusChamberUI() {
             clearInterval(focusTimer);
             isFocusActive = false;
             focusSecondsLeft = focusDurationMinutes * 60;
             updateFocusDisplay();
-            
             const btn = document.getElementById('focusActionBtn');
             btn.innerText = "Enter Chamber (+50 XP)";
             btn.className = "action-btn btn-start";
-            
-            document.getElementById('focusPresets').style.opacity = "1";
-            document.getElementById('focusPresets').style.pointerEvents = "all";
         }
 
         document.addEventListener('visibilitychange', () => {
             if (document.hidden && isFocusActive) {
-                clearInterval(focusTimer);
-                isFocusActive = false;
                 resetFocusChamberUI();
-                alert("💥 FOCUS CHAMBER COLLAPSED! You left the app to check something else. Penalized: -20 XP.");
-                addXP(-20);
+                window.addXP(-20);
+                alert("💥 FOCUS CHAMBER COLLAPSED! Penalty: -20 XP.");
             }
         });
-
-        function addXP(amount) {
-            userXP += amount;
-            let xpNeeded = userLevel * 100;
-            
-            while (userXP >= xpNeeded) {
-                userXP -= xpNeeded;
-                userLevel++;
-                xpNeeded = userLevel * 100;
-                triggerHaptic();
-                alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
-            }
-            if (userXP < 0) userXP = 0;
-
-            localStorage.setItem('pushApp_XP', userXP);
-            localStorage.setItem('pushApp_Level', userLevel);
-            updateGamificationUI();
-        }
 
         window.toggleRoutineTask = function(id, xpValue) {
             triggerHaptic();
             if (completedRoutineTasks.includes(id)) {
                 completedRoutineTasks = completedRoutineTasks.filter(item => item !== id);
-                addXP(-xpValue);
+                window.addXP(-xpValue);
             } else {
                 completedRoutineTasks.push(id);
-                addXP(xpValue);
+                window.addXP(xpValue);
             }
-            localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
             renderMorningRoutine();
         };
 
         function renderMorningRoutine() {
             const container = document.getElementById('routineContainer');
+            if(!container) return;
             container.innerHTML = '';
-            
             morningQuests.forEach(quest => {
                 const isChecked = completedRoutineTasks.includes(quest.id);
                 const row = document.createElement('div');
-                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; transition: all 0.3s; margin-bottom: 4px; width: 100%; box-sizing: border-box;`;
-                
+                row.style.cssText = `display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 10px; border-radius: 8px; border: 1px solid ${isChecked ? '#4CAF50' : '#2d2d2d'}; margin-bottom: 4px; width: 100%; box-sizing: border-box;`;
                 row.innerHTML = `
-                    <span style="font-size: 0.9rem; color: ${isChecked ? '#aaa' : '#fff'}; text-decoration: ${isChecked ? 'line-through' : 'none'}">${quest.label}</span>
-                    <button onclick="toggleRoutineTask('${quest.id}', ${quest.xp})" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem; flex-shrink: 0; margin-left: 10px;">
+                    <span style="font-size: 0.9rem; text-decoration: ${isChecked ? 'line-through' : 'none'}">${quest.label}</span>
+                    <button id="btn-quest-${quest.id}" style="background: ${isChecked ? '#222' : '#4CAF50'}; border: none; color: ${isChecked ? '#4CAF50' : 'white'}; padding: 4px 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.75rem;">
                         ${isChecked ? '✓ Done' : `+${quest.xp} XP`}
                     </button>
                 `;
                 container.appendChild(row);
+                document.getElementById(`btn-quest-${quest.id}`).onclick = () => window.toggleRoutineTask(quest.id, quest.xp);
             });
         }
 
         function updateGamificationUI() {
             document.getElementById('levelDisplay').innerText = `LVL ${userLevel}`;
-            document.getElementById('rawXpDisplay').innerText = `Wallet: ${userXP} XP`;
-            let xpNeeded = userLevel * 100;
-            let pct = (userXP / xpNeeded) * 100;
-            document.getElementById('xpBarFill').style.width = `${pct}%`;
-        }
-
-        function setProgress(percent) {
-            const offset = circumference - (Math.min(Math.max(percent, 0), 100) / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-            let hue = Math.min((percent / 100) * 120, 120);
-            circle.style.stroke = `hsl(${hue}, 80%, 48%)`;
+            document.getElementById('rawXpDisplay').innerText = `Wallet: ${walletXP} XP`;
+            let progressIntoLevel = lifetimeXP - ((userLevel - 1) * 100);
+            document.getElementById('xpBarFill').style.width = `${Math.min(progressIntoLevel, 100)}%`;
         }
 
         window.setMode = function(mode) {
@@ -624,57 +582,37 @@
         };
 
         function updateUI() {
-            let todayCount = appHistory[todayStr][currentMode] || 0;
+            let todayCount = (appHistory[todayStr] && appHistory[todayStr][currentMode]) || 0;
             let currentGoal = goals[currentMode];
-            
             counterDisplay.innerText = todayCount;
             goalDisplay.innerText = currentGoal;
             
-            setProgress((todayCount / currentGoal) * 100);
-            calculateStreak();
-            renderHeatmap();
+            const offset = circumference - (Math.min((todayCount / currentGoal), 1) * circumference);
+            circle.style.strokeDashoffset = offset;
             
             document.getElementById('prPushups').innerText = `${prs.maxPushups} reps`;
             document.getElementById('prPlank').innerText = `${prs.longestPlank}s`;
+            calculateStreak();
+            renderHeatmap();
         }
 
-        window.changeDailyGoal = function() {
+        window.changeDailyGoal = async function() {
             triggerHaptic();
-            let currentGoal = goals[currentMode];
-            let unit = currentMode === 'pushups' ? 'reps' : 'seconds';
-            const newGoal = prompt(`Enter your new daily target (${unit}):`, currentGoal);
-            if (newGoal !== null && !isNaN(newGoal) && parseInt(newGoal) > 0) {
+            let newGoal = prompt("Enter new target:", goals[currentMode]);
+            if (newGoal && !isNaN(newGoal)) {
                 goals[currentMode] = parseInt(newGoal);
-                localStorage.setItem('pushAppGoals', JSON.stringify(goals));
                 updateUI();
+                await saveUserDataToCloud();
             }
         };
-
-        function triggerGoalUpsellCheck(score, target) {
-            if (score === target) {
-                triggerHaptic();
-                setTimeout(() => {
-                    let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold';
-                    let bump = currentMode === 'pushups' ? 10 : 15;
-                    let answer = confirm(`🎉 Target Met! Raise your daily ${unit} goal by +${bump}?`);
-                    if(answer) {
-                        goals[currentMode] += bump;
-                        localStorage.setItem('pushAppGoals', JSON.stringify(goals));
-                        updateUI();
-                    }
-                }, 600);
-            }
-        }
 
         function calculateStreak() {
             let currentStreak = 0;
             let dateIterator = new Date();
-            
             while (true) {
                 dateIterator.setMinutes(dateIterator.getMinutes() - dateIterator.getTimezoneOffset());
                 let checkStr = dateIterator.toISOString().split('T')[0];
                 let entry = appHistory[checkStr];
-                
                 if (checkStr === todayStr) {
                     if (entry && entry.pushups >= goals.pushups) currentStreak++;
                 } else {
@@ -682,7 +620,6 @@
                     else break;
                 }
                 dateIterator.setDate(dateIterator.getDate() - 1);
-                if(currentStreak > 365) break;
             }
             document.getElementById('streakDisplay').innerText = `🔥 ${currentStreak} Days`;
         }
@@ -690,143 +627,77 @@
         function renderHeatmap() {
             heatmapGrid.innerHTML = '';
             heatmapTitle.innerText = `${currentMode === 'pushups' ? 'Push-up' : 'Plank'} Activity Matrix (4 Weeks)`;
-            let currentGoal = goals[currentMode];
-
             for (let i = 27; i >= 0; i--) {
                 const targetDate = new Date();
                 targetDate.setDate(targetDate.getDate() - i);
                 targetDate.setMinutes(targetDate.getMinutes() - targetDate.getTimezoneOffset());
                 const keyStr = targetDate.toISOString().split('T')[0];
-                
                 const val = appHistory[keyStr] ? (appHistory[keyStr][currentMode] || 0) : 0;
-                const percentage = Math.min((val / currentGoal), 1);
-                
                 const cell = document.createElement('div');
                 cell.className = 'heatmap-day';
                 cell.innerText = targetDate.getDate();
-                
                 if(val > 0) {
                     cell.className += ' active-data';
-                    cell.style.backgroundColor = `rgba(76, 175, 80, ${Math.max(percentage, 0.25)})`;
+                    cell.style.backgroundColor = `rgba(76, 175, 80, ${Math.min(val/goals[currentMode], 1)})`;
                 }
                 if(keyStr === todayStr) cell.style.border = '2px solid #ff9800';
                 heatmapGrid.appendChild(cell);
             }
         }
 
-        window.toggleReminders = function() {
-            triggerHaptic();
-            if (!("Notification" in window)) return;
-            Notification.requestPermission().then(p => { if (p === "granted") alert("🔔 Accountability active!"); });
-        };
-
         function calculateAngle(a, b, c) {
             let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
             let angle = Math.abs(radians * 180.0 / Math.PI);
-            if (angle > 180.0) angle = 360 - angle;
-            return angle;
+            return angle > 180.0 ? 360 - angle : angle;
         }
 
         function onResults(results) {
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
             if (results.poseLandmarks) {
-                let skeletonColor = currentMode === 'plank' && lastPlankTickTimestamp ? '#00E5FF' : '#00FF00';
-                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: skeletonColor, lineWidth: 4});
-                drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
-
+                drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
                 if (currentMode === "pushups") {
-                    statusText.style.color = "#ff9800";
-                    statusText.innerText = "Position body profile. Standard rep rules apply.";
-                    
                     const shoulder = results.poseLandmarks[11];
                     const elbow = results.poseLandmarks[13];
                     const wrist = results.poseLandmarks[15];
-
                     if (shoulder.visibility > 0.5 && elbow.visibility > 0.5 && wrist.visibility > 0.5) {
                         let angle = calculateAngle(shoulder, elbow, wrist);
                         if (angle < 90 && positionState === "up") positionState = "down";
                         else if (angle > 160 && positionState === "down") {
-                            triggerHaptic(); // Tactical buzz on completed reps
                             appHistory[todayStr].pushups++;
-                            localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
-                            if (appHistory[todayStr].pushups > prs.maxPushups) {
-                                prs.maxPushups = appHistory[todayStr].pushups;
-                                localStorage.setItem('pushAppPRs', JSON.stringify(prs));
-                            }
-                            addXP(2); 
-                            updateUI();
-                            triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
+                            if (appHistory[todayStr].pushups > prs.maxPushups) prs.maxPushups = appHistory[todayStr].pushups;
+                            window.addXP(2);
                             positionState = "up";
                         }
                     }
-                } 
-                else if (currentMode === "plank") {
+                } else if (currentMode === "plank") {
                     const shoulder = results.poseLandmarks[11];
                     const hip = results.poseLandmarks[23];
                     const knee = results.poseLandmarks[25];
-
                     if (shoulder.visibility > 0.5 && hip.visibility > 0.5 && knee.visibility > 0.5) {
                         let alignmentHipAngle = calculateAngle(shoulder, hip, knee);
-                        let isHorizontal = Math.abs(shoulder.x - knee.x) > Math.abs(shoulder.y - knee.y);
-                        let isCoreAligned = alignmentHipAngle > 145;
-
-                        if (isHorizontal && isCoreAligned) {
-                            statusText.innerText = `Plank Active! Duration: ${currentPlankSessionSeconds}s`;
-                            statusText.style.color = "#00E5FF";
-
+                        if (alignmentHipAngle > 145) {
                             let timeNow = Date.now();
                             if (!lastPlankTickTimestamp) lastPlankTickTimestamp = timeNow;
-
                             if (timeNow - lastPlankTickTimestamp >= 1000) {
-                                triggerHaptic(); // Rhythmic buzz while holding a perfect plank
                                 appHistory[todayStr].plank++;
                                 currentPlankSessionSeconds++;
                                 lastPlankTickTimestamp = timeNow;
-                                localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
-
-                                if (currentPlankSessionSeconds > prs.longestPlank) {
-                                    prs.longestPlank = currentPlankSessionSeconds;
-                                    localStorage.setItem('pushAppPRs', JSON.stringify(prs));
-                                }
-                                addXP(2); 
-                                updateUI();
-                                triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
+                                if (currentPlankSessionSeconds > prs.longestPlank) prs.longestPlank = currentPlankSessionSeconds;
+                                window.addXP(2);
                             }
-                        } else {
-                            statusText.style.color = "#ff9800";
-                            if(!isHorizontal) statusText.innerText = "Form Error: Position parallel to floor.";
-                            else statusText.innerText = "Form Error: Keep spine neutral.";
-                            lastPlankTickTimestamp = null;
-                            currentPlankSessionSeconds = 0; 
-                        }
-                    } else {
-                        statusText.innerText = "Awaiting skeleton framework framing match sync...";
-                        lastPlankTickTimestamp = null;
+                        } else { lastPlankTickTimestamp = null; currentPlankSessionSeconds = 0; }
                     }
                 }
             }
             canvasCtx.restore();
         }
 
-        // Initialize state configuration setup
-        applyGlobalTheme(activeTheme);
-        renderMorningRoutine();
-        renderMarketplace();
-        updateGamificationUI();
-        updateUI();
-
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
         pose.onResults(onResults);
-
-        const camera = new Camera(videoElement, {
-            onFrame: async () => { await pose.send({image: videoElement}); },
-            width: 640,
-            height: 480
-        });
+        const camera = new Camera(videoElement, { onFrame: async () => { await pose.send({image: videoElement}); }, width: 640, height: 480 });
     </script>
 </body>
 </html>
