@@ -259,19 +259,31 @@
         const todayStr = getTodayDate();
 
         // --- CORE AUTH PORTAL UTILITIES ---
-        window.toggleAuthMode = function() {
-            isSignUpMode = !isSignUpMode;
-            document.getElementById('auth-title').innerText = isSignUpMode ? "Welcome to PushApp" : "Welcome Back";
-            document.getElementById('auth-subtitle').innerText = isSignUpMode ? "Create an account to securely track stats in the cloud" : "Log in to sync your character progression file";
-            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
-            document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
-        };
+        // Look closely at your code and make sure "window." is written right before the function names:
 
-        window.handleAuthSubmit = async function() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            if(!email || !password) return alert("Please fill out both entry parameters.");
+window.handleAuthSubmit = async function() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    if(!email || !password) return alert("Please fill out both entry parameters.");
 
+    try {
+        if(isSignUpMode) {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+            await signInWithEmailAndPassword(auth, email, password);
+        }
+    } catch(err) {
+        alert(`Auth Failed: ${err.message}`);
+    }
+};
+
+window.toggleAuthMode = function() {
+    isSignUpMode = !isSignUpMode;
+    document.getElementById('auth-title').innerText = isSignUpMode ? "Welcome to PushApp" : "Welcome Back";
+    document.getElementById('auth-subtitle').innerText = isSignUpMode ? "Create an account to securely track stats in the cloud" : "Log in to sync your character progression file";
+    document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
+    document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
+};
             try {
                 if(isSignUpMode) {
                     await createUserWithEmailAndPassword(auth, email, password);
