@@ -229,7 +229,7 @@
             projectId: "pushapp-a448c",
             storageBucket: "pushapp-a448c.firebasestorage.app",
             messagingSenderId: "869195098196",
-            appId: "1:869195098196:web:7cb8179aaaa3eb8963a5c1"
+            appId: "1:869195098196:web:7cb8179aaaa3eb8963a5c1",
             measurementId: "G-3QYY1EZ7G6"
         };
 
@@ -284,16 +284,6 @@ window.toggleAuthMode = function() {
     document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
     document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
 };
-            try {
-                if(isSignUpMode) {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
-                }
-            } catch(err) {
-                alert(`Auth Core Exception Failed: ${err.message}`);
-            }
-        };
 
         window.logoutUser = function() {
             signOut(auth).then(() => {
