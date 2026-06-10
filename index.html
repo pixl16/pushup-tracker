@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>PushApp Cloud</title>
+    <title>PushApp</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
@@ -40,17 +40,6 @@
         body.theme-matrix .dashboard, body.theme-matrix .floating-dock { background: rgba(0, 15, 0, 0.85); border: 1px solid #00ff00; }
         body.theme-matrix .dock-item.active-tab, body.theme-matrix .mode-btn.active, body.theme-matrix #levelDisplay { color: #00ff00 !important; background-color: #002200 !important; }
         body.theme-matrix #xpBarFill { background: #00ff00 !important; }
-
-        /* Auth Portal Overlay */
-        #auth-portal {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: #121212; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
-        }
-        .auth-card { width: 100%; max-width: 360px; background: #1e1e1e; padding: 25px; border-radius: 16px; border: 1px solid #2d2d2d; text-align: center; }
-        .auth-input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #121212; color: white; box-sizing: border-box; font-size: 1rem; }
-        .auth-btn { width: 100%; padding: 14px; background: #4CAF50; color: black; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 10px; }
-        .auth-toggle { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; background: none; border: none; text-decoration: underline; }
 
         /* Standard App UI components */
         .header-ui { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; margin-bottom: 20px; }
@@ -96,26 +85,15 @@
         .shop-info { display: flex; flex-direction: column; }
         .shop-title { font-weight: bold; font-size: 0.9rem; }
         .shop-cost { font-size: 0.75rem; color: #ff9800; }
-        .logout-btn { background: none; border: 1px solid #ff4444; color: #ff4444; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.75rem; cursor: pointer; }
+        .clear-btn { background: none; border: 1px solid #ff4444; color: #ff4444; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.75rem; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="auth-portal">
-        <div class="auth-card">
-            <h2 id="auth-title">Welcome to PushApp</h2>
-            <p id="auth-subtitle" style="color: #aaa; font-size: 0.85rem; margin-bottom: 20px;">Create an account to securely track stats in the cloud</p>
-            <input type="email" id="auth-email" class="auth-input" placeholder="Email Address">
-            <input type="password" id="auth-password" class="auth-input" placeholder="Password (Min 6 chars)">
-            <button id="auth-submit-btn" class="auth-btn" onclick="handleAuthSubmit()">Sign Up</button>
-            <button class="auth-toggle" onclick="toggleAuthMode()" id="auth-toggle-btn">Already have an account? Log In</button>
-        </div>
-    </div>
-
     <div class="header-ui">
         <div>
             <h1>PushApp</h1>
-            <button class="logout-btn" onclick="logoutUser()">Log Out</button>
+            <button class="clear-btn" onclick="clearData()">Reset Data</button>
         </div>
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
     </div>
@@ -218,37 +196,13 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Fixed: Removed 'doc' from auth module import
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // Fixed: Moved 'doc' into its correct home under firestore module import
-        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        // ⚠️ REPLACE THIS OBJECT WITH THE CONFIG GENERATED IN YOUR FIREBASE CONSOLE
-        const firebaseConfig = {
-            apiKey: "AIzaSyBt3RGNsGNJXnumbNpmbf5J45je_82hNJ0",
-            authDomain: "pushapp-a448c.firebaseapp.com",
-            projectId: "pushapp-a448c",
-            storageBucket: "pushapp-a448c.firebasestorage.app",
-            messagingSenderId: "869195098196",
-            appId: "1:869195098196:web:7cb8179aaaa3eb8963a5c1",
-            measurementId: "G-3QYY1EZ7G6"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Map global variables into module scope explicitly to resolve reference errors
+        // Map global variables into module scope explicitly to resolve MediaPipe errors
         const Pose = window.Pose;
         const Camera = window.Camera;
         const POSE_CONNECTIONS = window.POSE_CONNECTIONS;
         const drawConnectors = window.drawConnectors;
 
-        // --- GLOBAL STATE STATE VARIABLES ---
-        let currentUser = null;
-        let isSignUpMode = true;
-        
+        // --- GLOBAL STATE VARIABLES ---
         let appHistory = {};
         let goals = { pushups: 50, plank: 60 };
         let prs = { maxPushups: 0, longestPlank: 0 };
@@ -266,73 +220,23 @@
         };
         const todayStr = getTodayDate();
 
-        // --- CORE AUTH PORTAL UTILITIES ---
-        window.handleAuthSubmit = async function() {
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            if(!email || !password) return alert("Please fill out both entry parameters.");
-
-            try {
-                if(isSignUpMode) {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                } else {
-                    await signInWithEmailAndPassword(auth, email, password);
+        // Load data directly from local storage upon app mounting
+        function loadUserData() {
+            const savedData = localStorage.getItem('pushapp_user_data');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    appHistory = data.appHistory || {};
+                    goals = data.goals || { pushups: 50, plank: 60 };
+                    prs = data.prs || { maxPushups: 0, longestPlank: 0 };
+                    lifetimeXP = data.lifetimeXP || 0;
+                    walletXP = data.walletXP || 0;
+                    userLevel = data.userLevel || 1;
+                    unlockedThemes = data.unlockedThemes || ['default'];
+                    activeTheme = data.activeTheme || 'default';
+                } catch(e) {
+                    console.error("Failed to parse localized payload", e);
                 }
-            } catch(err) {
-                alert(`Auth Failed: ${err.message}`);
-            }
-        };
-
-        window.toggleAuthMode = function() {
-            isSignUpMode = !isSignUpMode;
-            document.getElementById('auth-title').innerText = isSignUpMode ? "Welcome to PushApp" : "Welcome Back";
-            document.getElementById('auth-subtitle').innerText = isSignUpMode ? "Create an account to securely track stats in the cloud" : "Log in to sync your character progression file";
-            document.getElementById('auth-submit-btn').innerText = isSignUpMode ? "Sign Up" : "Log In";
-            document.getElementById('auth-toggle-btn').innerText = isSignUpMode ? "Already have an account? Log In" : "Need an account? Sign Up";
-        };
-
-        window.logoutUser = function() {
-            signOut(auth).then(() => {
-                document.getElementById('auth-portal').style.display = 'flex';
-            });
-        };
-
-        // Track authentication changes
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('auth-portal').style.display = 'none';
-                await loadUserDataFromCloud();
-            } else {
-                currentUser = null;
-                document.getElementById('auth-portal').style.display = 'flex';
-            }
-        });
-
-        // --- DATABASE SYNC READ/WRITE SYSTEM ---
-        async function loadUserDataFromCloud() {
-            if (!currentUser) return;
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const userSnapshot = await getDoc(userDocRef);
-
-            if (userSnapshot.exists()) {
-                const data = userSnapshot.data();
-                appHistory = data.appHistory || {};
-                goals = data.goals || { pushups: 50, plank: 60 };
-                prs = data.prs || { maxPushups: 0, longestPlank: 0 };
-                lifetimeXP = data.lifetimeXP || 0;
-                walletXP = data.walletXP || 0;
-                userLevel = data.userLevel || 1;
-                unlockedThemes = data.unlockedThemes || ['default'];
-                activeTheme = data.activeTheme || 'default';
-            } else {
-                // Initialize clean cloud record for new accounts
-                appHistory = {};
-                appHistory[todayStr] = { pushups: 0, plank: 0 };
-                await setDoc(userDocRef, {
-                    email: currentUser.email,
-                    appHistory, goals, prs, lifetimeXP, walletXP, userLevel, unlockedThemes, activeTheme
-                });
             }
 
             if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
@@ -345,17 +249,23 @@
             updateUI();
         }
 
-        async function saveUserDataToCloud() {
-            if (!currentUser) return;
+        function saveUserData() {
             appHistory[todayStr].completedRoutines = completedRoutineTasks;
-            const userDocRef = doc(db, "users", currentUser.uid);
-            await updateDoc(userDocRef, {
+            const payload = {
                 appHistory, goals, prs, lifetimeXP, walletXP, userLevel, unlockedThemes, activeTheme
-            });
+            };
+            localStorage.setItem('pushapp_user_data', JSON.stringify(payload));
+        }
+
+        window.clearData = function() {
+            if(confirm("Are you sure you want to completely reset all your local levels, XP, and workout configurations?")) {
+                localStorage.removeItem('pushapp_user_data');
+                location.reload();
+            }
         }
 
         // --- BALANCED GAME ECONOMY FUNCTIONS ---
-        window.addXP = async function(amount) {
+        window.addXP = function(amount) {
             lifetimeXP += amount;
             walletXP += amount;
             if(walletXP < 0) walletXP = 0;
@@ -368,21 +278,21 @@
                 alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
             }
             updateGamificationUI();
-            await saveUserDataToCloud();
+            saveUserData();
         };
 
-        window.buyOrEquipTheme = async function(themeId, cost) {
+        window.buyOrEquipTheme = function(themeId, cost) {
             triggerHaptic();
             if (unlockedThemes.includes(themeId)) {
                 applyGlobalTheme(themeId);
-                await saveUserDataToCloud();
+                saveUserData();
             } else {
                 if (walletXP >= cost) {
                     walletXP -= cost;
                     unlockedThemes.push(themeId);
                     applyGlobalTheme(themeId);
                     updateGamificationUI();
-                    await saveUserDataToCloud();
+                    saveUserData();
                     alert(`🎨 Theme Unlocked & Equipped!`);
                 } else {
                     alert(`❌ Insufficient Funds! You need ${cost - walletXP} more XP.`);
@@ -390,7 +300,7 @@
             }
         };
 
-        // --- STANDARD LOCAL APP LOGIC ATTACHED GLOBALLY ---
+        // --- STANDARD LOCAL APP LOGIC ---
         function triggerHaptic() { if (navigator.vibrate) navigator.vibrate(50); }
 
         const videoElement = document.getElementById('webcam');
@@ -445,7 +355,13 @@
 
             if (targetView === 'exercise' && !isCameraStarted) {
                 isCameraStarted = true;
-                camera.start().catch(() => { isCameraStarted = false; });
+                statusText.innerText = "Activating Tracking Camera Engine...";
+                camera.start().then(() => {
+                    statusText.innerText = "Camera Active. Align whole body.";
+                }).catch(() => { 
+                    isCameraStarted = false; 
+                    statusText.innerText = "Camera access denied or failed.";
+                });
             }
         };
 
@@ -604,13 +520,13 @@
             renderHeatmap();
         }
 
-        window.changeDailyGoal = async function() {
+        window.changeDailyGoal = function() {
             triggerHaptic();
             let newGoal = prompt("Enter new target:", goals[currentMode]);
             if (newGoal && !isNaN(newGoal)) {
                 goals[currentMode] = parseInt(newGoal);
                 updateUI();
-                await saveUserDataToCloud();
+                saveUserData();
             }
         };
 
@@ -701,6 +617,9 @@
             }
             canvasCtx.restore();
         }
+
+        // Initialize state on load
+        loadUserData();
 
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
