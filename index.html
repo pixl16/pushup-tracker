@@ -36,7 +36,7 @@
             background-color: #1a0b2e;
             color: #ff007f;
         }
-        body.theme-synthwave .dashboard, body.theme-synthwave .floating-dock {
+        body.theme-synthwave .dashboard, body.theme-synthwave .compact-card, body.theme-synthwave .floating-dock {
             background: rgba(43, 15, 84, 0.75);
             border: 1px solid #00f0ff;
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
@@ -52,7 +52,7 @@
             background-color: #000000;
             color: #00ff00;
         }
-        body.theme-matrix .dashboard, body.theme-matrix .floating-dock {
+        body.theme-matrix .dashboard, body.theme-matrix .compact-card, body.theme-matrix .floating-dock {
             background: rgba(0, 15, 0, 0.85);
             border: 1px solid #00ff00;
         }
@@ -136,6 +136,29 @@
             transition: all 0.3s;
         }
         .dashboard h3 { margin: 0 0 15px 0; font-size: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .section-title { width: 100%; margin: 4px 0 10px; color: #aaa; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+        .compact-card { width: 100%; background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 14px; padding: 14px; margin-bottom: 12px; box-sizing: border-box; }
+        .xp-card { background: linear-gradient(145deg, #1f1f1f, #151515); }
+        .xp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+        .xp-meta { display: flex; flex-direction: column; gap: 2px; }
+        .xp-label { color: #aaa; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+        .xp-wallet { color: #aaa; font-size: 0.75rem; text-align: right; }
+        .xp-track { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+        .today-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+        .stat-chip { background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px 8px; box-sizing: border-box; }
+        .stat-label { color: #888; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+        .stat-value { color: #fff; font-size: 1rem; font-weight: 800; margin-top: 3px; }
+        .quick-focus { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
+        .quick-focus #focusTimeDisplay { font-size: 2.4rem; }
+        .quick-focus .focus-circle-container { width: auto; height: auto; margin: 0; justify-content: flex-start; }
+        .quick-focus .preset-grid { grid-column: 1 / -1; margin-bottom: 0; }
+        .quick-focus .action-btn { grid-column: 1 / -1; margin-top: 0; }
+        .progress-tools { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        details.compact-card { padding: 0; overflow: hidden; }
+        details.compact-card summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 14px; font-weight: 800; }
+        details.compact-card summary::after { content: "+"; color: #4CAF50; font-size: 1.2rem; }
+        details.compact-card[open] summary::after { content: "-"; }
+        .details-body { padding: 0 14px 14px; }
 
         /* Focus & Exercise Utilities */
         .focus-circle-container { width: 200px; height: 200px; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
@@ -175,11 +198,15 @@
         .shop-info { display: flex; flex-direction: column; }
         .shop-title { font-weight: bold; font-size: 0.9rem; }
         .shop-cost { font-size: 0.75rem; color: #ff9800; }
-        .badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
-        .achievement-badge { background: #121212; border: 1px solid #2d2d2d; border-radius: 8px; padding: 10px; opacity: 0.45; }
+        .badge-grid { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; padding-right: 2px; }
+        .achievement-summary { color: #888; font-size: 0.75rem; font-weight: 700; margin-bottom: 10px; }
+        .achievement-badge { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 10px; background: #121212; border: 1px solid #2d2d2d; border-radius: 8px; padding: 10px; opacity: 0.48; }
         .achievement-badge.unlocked { border-color: #4CAF50; opacity: 1; }
-        .badge-name { font-size: 0.78rem; font-weight: bold; margin-bottom: 3px; }
+        .badge-icon { color: #888; font-size: 0.9rem; text-align: center; }
+        .achievement-badge.unlocked .badge-icon { color: #4CAF50; }
+        .badge-name { font-size: 0.82rem; font-weight: bold; margin-bottom: 2px; }
         .badge-desc { font-size: 0.68rem; color: #888; line-height: 1.25; }
+        .badge-xp { color: #ff9800; font-size: 0.7rem; font-weight: 800; white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -194,30 +221,56 @@
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
     </div>
 
-    <div id="view-routines" class="app-view active-view">
-        <div class="dashboard" style="background: linear-gradient(145deg, #1e1e1e, #151515);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span style="font-weight: bold; color: #aaa; font-size: 0.85rem; text-transform: uppercase;">Character Stats</span>
-                <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">LVL 1</span>
+    <div id="view-today" class="app-view active-view">
+        <div class="compact-card xp-card">
+            <div class="xp-row">
+                <div class="xp-meta">
+                    <span class="xp-label">Today</span>
+                    <span id="levelDisplay" style="background: #4CAF50; color: black; font-weight: bold; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; width: fit-content;">LVL 1</span>
+                </div>
+                <div class="xp-wallet" id="rawXpDisplay">Wallet: 0 XP</div>
             </div>
-            <div style="width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-bottom: 5px;">
+            <div class="xp-track">
                 <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
             </div>
-            <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 15px; text-align: right;" id="rawXpDisplay">Wallet: 0 XP</div>
+        </div>
 
-            <h3>🏅 Achievements</h3>
-            <div class="badge-grid" id="achievementContainer"></div>
+        <div class="today-stats">
+            <div class="stat-chip">
+                <div class="stat-label">Push-ups</div>
+                <div class="stat-value" id="todayPushups">0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Plank</div>
+                <div class="stat-value" id="todayPlank">0s</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Routine</div>
+                <div class="stat-value" id="routineProgress">0/0</div>
+            </div>
+        </div>
 
-            <h3>🌅 Morning Routine</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 25px;" id="routineContainer"></div>
+        <div class="section-title">Morning Routine</div>
+        <div class="compact-card">
+            <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer"></div>
+        </div>
 
-            <h3>🎨 The XP Marketplace</h3>
-            <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;" id="shopContainer">
-                </div>
+        <div class="section-title">Focus</div>
+        <div class="compact-card quick-focus">
+            <div class="focus-circle-container">
+                <div id="focusTimeDisplay">25:00</div>
+            </div>
+            <span class="stat-label">+50 XP</span>
+            <div class="preset-grid" id="focusPresets">
+                <button class="preset-btn selected" onclick="setFocusDuration(25, this)">25 Min</button>
+                <button class="preset-btn" onclick="setFocusDuration(45, this)">45 Min</button>
+                <button class="preset-btn" onclick="setFocusDuration(60, this)">60 Min</button>
+            </div>
+            <button id="focusActionBtn" class="action-btn btn-start" onclick="toggleFocusChamber()">Start Focus</button>
         </div>
     </div>
 
-    <div id="view-exercise" class="app-view">
+    <div id="view-train" class="app-view">
         <div class="mode-container">
             <button class="mode-btn active" id="btn-pushups" onclick="setMode('pushups')">Push-ups</button>
             <button class="mode-btn" id="btn-plank" onclick="setMode('plank')">Planks</button>
@@ -244,66 +297,51 @@
             <canvas id="output_canvas" width="640" height="480"></canvas>
         </div>
 
-        <div class="dashboard">
-            <h3>Personal Records</h3>
-            <div class="pr-grid">
-                <div class="pr-card">
-                    <div class="pr-title">Max Push-ups</div>
-                    <div class="pr-value" id="prPushups">0 reps</div>
-                </div>
-                <div class="pr-card">
-                    <div class="pr-title">Longest Plank</div>
-                    <div class="pr-value" id="prPlank">0s</div>
-                </div>
+        <div class="pr-grid" style="width: 100%; margin-bottom: 12px;">
+            <div class="pr-card">
+                <div class="pr-title">Max Push-ups</div>
+                <div class="pr-value" id="prPushups">0 reps</div>
             </div>
-            <button class="reminder-btn" onclick="toggleReminders()">🔔 Toggle Accountability Reminders</button>
+            <div class="pr-card">
+                <div class="pr-title">Longest Plank</div>
+                <div class="pr-value" id="prPlank">0s</div>
+            </div>
         </div>
+        <button class="reminder-btn" onclick="toggleReminders()">Toggle Accountability Reminders</button>
     </div>
 
-    <div id="view-calendar" class="app-view">
-        <div class="dashboard">
+    <div id="view-progress" class="app-view">
+        <div class="compact-card">
             <h3 id="heatmapTitle">Activity View</h3>
             <div class="heatmap-container" id="heatmapGrid"></div>
         </div>
-    </div>
-
-    <div id="view-focus" class="app-view">
-        <div class="dashboard" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
-            <h3>🛡️ The Focus Chamber</h3>
-            <p style="font-size: 0.85rem; color: #aaa; margin: 0 0 15px 0;">
-                Lock yourself in. If you minimize this app to open social media, the field collapses and you lose **-20 XP**.
-            </p>
-
-            <div class="preset-grid" id="focusPresets">
-                <button class="preset-btn selected" onclick="setFocusDuration(25, this)">25 Min</button>
-                <button class="preset-btn" onclick="setFocusDuration(45, this)">45 Min</button>
-                <button class="preset-btn" onclick="setFocusDuration(60, this)">60 Min</button>
+        <details class="compact-card" open>
+            <summary>Achievements</summary>
+            <div class="details-body">
+                <div class="achievement-summary" id="achievementSummary">0 of 0 unlocked</div>
+                <div class="badge-grid" id="achievementContainer"></div>
             </div>
-
-            <div class="focus-circle-container">
-                <div id="focusTimeDisplay">25:00</div>
+        </details>
+        <details class="compact-card">
+            <summary>Theme Shop</summary>
+            <div class="details-body">
+                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;" id="shopContainer"></div>
             </div>
-
-            <button id="focusActionBtn" class="action-btn btn-start" onclick="toggleFocusChamber()">Enter Chamber (+50 XP)</button>
-        </div>
+        </details>
     </div>
 
     <div class="floating-dock">
-        <button class="dock-item active-tab" id="tab-routines" onclick="switchTab('routines')">
+        <button class="dock-item active-tab" id="tab-today" onclick="switchTab('today')">
             <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-            Routines
+            Today
         </button>
-        <button class="dock-item" id="tab-exercise" onclick="switchTab('exercise')">
+        <button class="dock-item" id="tab-train" onclick="switchTab('train')">
             <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            Exercise
+            Train
         </button>
-        <button class="dock-item" id="tab-calendar" onclick="switchTab('calendar')">
+        <button class="dock-item" id="tab-progress" onclick="switchTab('progress')">
             <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-            Calendar
-        </button>
-        <button class="dock-item" id="tab-focus" onclick="switchTab('focus')">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-            Focus
+            Progress
         </button>
     </div>
 
@@ -382,12 +420,17 @@
         let positionState = "up"; 
         let currentPlankSessionSeconds = 0;
         let lastPlankTickTimestamp = null;
+        let plankHoldStartTimestamp = null;
+        let plankCreditedSeconds = 0;
+        let plankGraceUntilTimestamp = null;
         let isCameraStarted = false;
 
         let focusTimer = null;
         let focusDurationMinutes = 25;
         let focusSecondsLeft = 25 * 60;
         let isFocusActive = false;
+        let focusSessionsCompleted = parseInt(localStorage.getItem('pushApp_FocusSessionsCompleted')) || 0;
+        let focus45SessionsCompleted = parseInt(localStorage.getItem('pushApp_Focus45SessionsCompleted')) || 0;
 
         const morningQuests = [
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
@@ -412,26 +455,37 @@
 
         const achievements = [
             { id: 'first_pushup', name: 'First Rep', desc: 'Complete your first push-up.', xp: 10, isUnlocked: () => getTotalStat('pushups') >= 1 },
+            { id: 'pushup_25', name: 'Getting Warm', desc: 'Complete 25 total push-ups.', xp: 20, isUnlocked: () => getTotalStat('pushups') >= 25 },
             { id: 'pushup_100', name: 'Century Club', desc: 'Complete 100 total push-ups.', xp: 40, isUnlocked: () => getTotalStat('pushups') >= 100 },
-            { id: 'plank_60', name: 'Core Locked', desc: 'Hold planks for 60 total seconds.', xp: 30, isUnlocked: () => getTotalStat('plank') >= 60 },
-            { id: 'routine_done', name: 'Morning Champion', desc: 'Finish every morning routine task in one day.', xp: 50, isUnlocked: () => completedRoutineTasks.length >= morningQuests.length },
-            { id: 'streak_3', name: 'Three-Day Spark', desc: 'Reach a 3-day push-up goal streak.', xp: 50, isUnlocked: () => calculateStreak() >= 3 },
-            { id: 'level_5', name: 'Level 5 Athlete', desc: 'Reach Level 5.', xp: 75, isUnlocked: () => userLevel >= 5 }
+            { id: 'pushup_500', name: 'Iron Shoulders', desc: 'Complete 500 total push-ups.', xp: 100, isUnlocked: () => getTotalStat('pushups') >= 500 },
+            { id: 'pushup_1000', name: 'Push-up Machine', desc: 'Complete 1,000 total push-ups.', xp: 175, isUnlocked: () => getTotalStat('pushups') >= 1000 },
+            { id: 'daily_target_hit', name: 'Daily Target Hit', desc: 'Reach your daily push-up goal once.', xp: 35, isUnlocked: () => hasPushupDayAtRatio(1) },
+            { id: 'overachiever', name: 'Overachiever', desc: 'Beat your daily push-up goal by 25%.', xp: 55, isUnlocked: () => hasPushupDayAtRatio(1.25) },
+            { id: 'streak_3', name: 'Three-Day Spark', desc: 'Reach a 3-day goal streak.', xp: 50, isUnlocked: () => calculateStreak() >= 3 },
+            { id: 'streak_7', name: 'One Week Locked', desc: 'Reach a 7-day goal streak.', xp: 90, isUnlocked: () => calculateStreak() >= 7 },
+            { id: 'streak_14', name: 'Two Week Discipline', desc: 'Reach a 14-day goal streak.', xp: 150, isUnlocked: () => calculateStreak() >= 14 },
+            { id: 'first_plank', name: 'First Plank', desc: 'Hold your first tracked plank second.', xp: 10, isUnlocked: () => getTotalStat('plank') >= 1 },
+            { id: 'plank_60', name: 'Core Awake', desc: 'Hold 60 total plank seconds.', xp: 30, isUnlocked: () => getTotalStat('plank') >= 60 },
+            { id: 'plank_300', name: 'Core Locked', desc: 'Hold 5 total plank minutes.', xp: 75, isUnlocked: () => getTotalStat('plank') >= 300 },
+            { id: 'plank_session_60', name: 'Unshaken', desc: 'Hold one plank session for 60 seconds.', xp: 65, isUnlocked: () => prs.longestPlank >= 60 },
+            { id: 'plank_session_120', name: 'Stone Core', desc: 'Hold one plank session for 2 minutes.', xp: 120, isUnlocked: () => prs.longestPlank >= 120 },
+            { id: 'focus_first', name: 'Focus Initiate', desc: 'Complete one focus session.', xp: 35, isUnlocked: () => focusSessionsCompleted >= 1 },
+            { id: 'focus_45', name: 'Deep Work', desc: 'Complete a 45-minute focus session.', xp: 75, isUnlocked: () => focus45SessionsCompleted >= 1 },
+            { id: 'focus_10', name: 'Focus Fortress', desc: 'Complete 10 focus sessions.', xp: 150, isUnlocked: () => focusSessionsCompleted >= 10 },
+            { id: 'theme_collector', name: 'Theme Collector', desc: 'Unlock every theme in the marketplace.', xp: 100, isUnlocked: () => unlockedThemes.length >= shopThemes.length }
         ];
 
         window.switchTab = function(targetView) {
             triggerHaptic();
-            document.getElementById('view-routines').classList.toggle('active-view', targetView === 'routines');
-            document.getElementById('view-exercise').classList.toggle('active-view', targetView === 'exercise');
-            document.getElementById('view-calendar').classList.toggle('active-view', targetView === 'calendar');
-            document.getElementById('view-focus').classList.toggle('active-view', targetView === 'focus');
+            document.getElementById('view-today').classList.toggle('active-view', targetView === 'today');
+            document.getElementById('view-train').classList.toggle('active-view', targetView === 'train');
+            document.getElementById('view-progress').classList.toggle('active-view', targetView === 'progress');
             
-            document.getElementById('tab-routines').classList.toggle('active-tab', targetView === 'routines');
-            document.getElementById('tab-exercise').classList.toggle('active-tab', targetView === 'exercise');
-            document.getElementById('tab-calendar').classList.toggle('active-tab', targetView === 'calendar');
-            document.getElementById('tab-focus').classList.toggle('active-tab', targetView === 'focus');
+            document.getElementById('tab-today').classList.toggle('active-tab', targetView === 'today');
+            document.getElementById('tab-train').classList.toggle('active-tab', targetView === 'train');
+            document.getElementById('tab-progress').classList.toggle('active-tab', targetView === 'progress');
 
-            if (targetView === 'exercise' && !isCameraStarted) {
+            if (targetView === 'train' && !isCameraStarted) {
                 isCameraStarted = true;
                 statusText.innerText = "Initializing AI Vision Engine...";
                 camera.start()
@@ -466,6 +520,7 @@
                     localStorage.setItem('pushApp_WalletXP', userWalletXP);
                     applyGlobalTheme(themeId);
                     updateGamificationUI();
+                    checkAchievements();
                     alert(`🎨 Theme Unlocked & Equipped! Your dashboard style has evolved.`);
                 } else {
                     alert(`❌ Insufficient Funds! You need ${cost - userWalletXP} more XP points to claim this skin.`);
@@ -526,7 +581,7 @@
             
             if (!isFocusActive) {
                 isFocusActive = true;
-                btn.innerText = "🚨 Emergency Abort Session";
+                btn.innerText = "Abort Focus";
                 btn.className = "action-btn btn-abort";
                 document.getElementById('focusPresets').style.opacity = "0.3";
                 document.getElementById('focusPresets').style.pointerEvents = "none";
@@ -551,6 +606,10 @@
         function completeFocusSession() {
             triggerHaptic();
             alert("🎉 Outstanding work! The Chamber has safely powered down. You maintained complete focus and earned +50 XP!");
+            focusSessionsCompleted++;
+            if (focusDurationMinutes >= 45) focus45SessionsCompleted++;
+            localStorage.setItem('pushApp_FocusSessionsCompleted', focusSessionsCompleted);
+            localStorage.setItem('pushApp_Focus45SessionsCompleted', focus45SessionsCompleted);
             addXP(50);
             resetFocusChamberUI();
         }
@@ -562,7 +621,7 @@
             updateFocusDisplay();
             
             const btn = document.getElementById('focusActionBtn');
-            btn.innerText = "Enter Chamber (+50 XP)";
+            btn.innerText = "Start Focus";
             btn.className = "action-btn btn-start";
             
             document.getElementById('focusPresets').style.opacity = "1";
@@ -623,6 +682,10 @@
             return Object.values(appHistory).reduce((total, entry) => total + (entry[statName] || 0), 0);
         }
 
+        function hasPushupDayAtRatio(ratio) {
+            return Object.values(appHistory).some(entry => (entry.pushups || 0) >= goals.pushups * ratio);
+        }
+
         function checkAchievements() {
             let newlyUnlocked = [];
             achievements.forEach(badge => {
@@ -643,14 +706,20 @@
         function renderAchievements() {
             const container = document.getElementById('achievementContainer');
             container.innerHTML = '';
+            const unlockedCount = achievements.filter(badge => unlockedAchievements.includes(badge.id)).length;
+            document.getElementById('achievementSummary').innerText = `${unlockedCount} of ${achievements.length} unlocked`;
 
             achievements.forEach(badge => {
                 const isUnlocked = unlockedAchievements.includes(badge.id);
                 const item = document.createElement('div');
                 item.className = `achievement-badge ${isUnlocked ? 'unlocked' : ''}`;
                 item.innerHTML = `
-                    <div class="badge-name">${isUnlocked ? '🏅' : '🔒'} ${badge.name}</div>
-                    <div class="badge-desc">${badge.desc}</div>
+                    <div class="badge-icon">${isUnlocked ? '✓' : '•'}</div>
+                    <div>
+                        <div class="badge-name">${badge.name}</div>
+                        <div class="badge-desc">${badge.desc}</div>
+                    </div>
+                    <div class="badge-xp">+${badge.xp}</div>
                 `;
                 container.appendChild(item);
             });
@@ -672,6 +741,7 @@
         function renderMorningRoutine() {
             const container = document.getElementById('routineContainer');
             container.innerHTML = '';
+            document.getElementById('routineProgress').innerText = `${completedRoutineTasks.length}/${morningQuests.length}`;
             
             morningQuests.forEach(quest => {
                 const isChecked = completedRoutineTasks.includes(quest.id);
@@ -711,6 +781,9 @@
             counterLabel.innerText = mode === 'pushups' ? "Reps" : "Seconds";
             currentPlankSessionSeconds = 0;
             lastPlankTickTimestamp = null;
+            plankHoldStartTimestamp = null;
+            plankCreditedSeconds = 0;
+            plankGraceUntilTimestamp = null;
             updateUI();
         };
 
@@ -720,6 +793,8 @@
             
             counterDisplay.innerText = todayCount;
             goalDisplay.innerText = currentGoal;
+            document.getElementById('todayPushups').innerText = appHistory[todayStr].pushups || 0;
+            document.getElementById('todayPlank').innerText = `${appHistory[todayStr].plank || 0}s`;
             
             setProgress((todayCount / currentGoal) * 100);
             calculateStreak();
@@ -819,13 +894,36 @@
             return angle;
         }
 
+        function getBestPlankSide(landmarks) {
+            const sides = [
+                { shoulder: landmarks[11], hip: landmarks[23], knee: landmarks[25], ankle: landmarks[27] },
+                { shoulder: landmarks[12], hip: landmarks[24], knee: landmarks[26], ankle: landmarks[28] }
+            ];
+
+            return sides
+                .map(side => ({
+                    ...side,
+                    visibility: [side.shoulder, side.hip, side.knee, side.ankle].reduce((total, point) => total + (point.visibility || 0), 0) / 4
+                }))
+                .sort((a, b) => b.visibility - a.visibility)[0];
+        }
+
+        function resetPlankSession(message) {
+            if (message) statusText.innerText = message;
+            lastPlankTickTimestamp = null;
+            plankHoldStartTimestamp = null;
+            plankCreditedSeconds = 0;
+            plankGraceUntilTimestamp = null;
+            currentPlankSessionSeconds = 0;
+        }
+
         function onResults(results) {
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
 
             if (results.poseLandmarks) {
-                let skeletonColor = currentMode === 'plank' && lastPlankTickTimestamp ? '#00E5FF' : '#00FF00';
+                let skeletonColor = currentMode === 'plank' && plankHoldStartTimestamp ? '#00E5FF' : '#00FF00';
                 drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: skeletonColor, lineWidth: 4});
                 drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
 
@@ -856,47 +954,62 @@
                     }
                 } 
                 else if (currentMode === "plank") {
-                    const shoulder = results.poseLandmarks[11];
-                    const hip = results.poseLandmarks[23];
-                    const knee = results.poseLandmarks[25];
+                    const side = getBestPlankSide(results.poseLandmarks);
+                    const now = Date.now();
 
-                    if (shoulder.visibility > 0.5 && hip.visibility > 0.5 && knee.visibility > 0.5) {
-                        let alignmentHipAngle = calculateAngle(shoulder, hip, knee);
-                        let isHorizontal = Math.abs(shoulder.x - knee.x) > Math.abs(shoulder.y - knee.y);
-                        let isCoreAligned = alignmentHipAngle > 145;
+                    if (side.visibility > 0.55) {
+                        const shoulderHipKneeAngle = calculateAngle(side.shoulder, side.hip, side.knee);
+                        const hipKneeAnkleAngle = calculateAngle(side.hip, side.knee, side.ankle);
+                        const bodyRun = Math.abs(side.shoulder.x - side.ankle.x);
+                        const bodyRise = Math.abs(side.shoulder.y - side.ankle.y);
+                        const hipSag = Math.abs(side.hip.y - ((side.shoulder.y + side.ankle.y) / 2));
+                        const isSideProfile = bodyRun > bodyRise * 1.15;
+                        const isCoreAligned = shoulderHipKneeAngle > 150 && hipKneeAnkleAngle > 150 && hipSag < 0.12;
 
-                        if (isHorizontal && isCoreAligned) {
-                            statusText.innerText = `Plank Active! Duration: ${currentPlankSessionSeconds}s`;
+                        if (isSideProfile && isCoreAligned) {
                             statusText.style.color = "#00E5FF";
+                            plankGraceUntilTimestamp = null;
+                            if (!plankHoldStartTimestamp) {
+                                plankHoldStartTimestamp = now;
+                                plankCreditedSeconds = 0;
+                            }
 
-                            let timeNow = Date.now();
-                            if (!lastPlankTickTimestamp) lastPlankTickTimestamp = timeNow;
+                            currentPlankSessionSeconds = Math.floor((now - plankHoldStartTimestamp) / 1000);
+                            statusText.innerText = `Plank active: ${currentPlankSessionSeconds}s`;
 
-                            if (timeNow - lastPlankTickTimestamp >= 1000) {
-                                triggerHaptic(); // Rhythmic buzz while holding a perfect plank
+                            while (currentPlankSessionSeconds > plankCreditedSeconds) {
+                                plankCreditedSeconds++;
+                                triggerHaptic();
                                 appHistory[todayStr].plank++;
-                                currentPlankSessionSeconds++;
-                                lastPlankTickTimestamp = timeNow;
                                 localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
 
-                                if (currentPlankSessionSeconds > prs.longestPlank) {
-                                    prs.longestPlank = currentPlankSessionSeconds;
+                                if (plankCreditedSeconds > prs.longestPlank) {
+                                    prs.longestPlank = plankCreditedSeconds;
                                     localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                                 }
-                                addXP(2); 
+                                addXP(2);
                                 updateUI();
                                 triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
                             }
                         } else {
                             statusText.style.color = "#ff9800";
-                            if(!isHorizontal) statusText.innerText = "Form Error: Position parallel to floor.";
-                            else statusText.innerText = "Form Error: Keep spine neutral.";
-                            lastPlankTickTimestamp = null;
-                            currentPlankSessionSeconds = 0; 
+                            if (!plankGraceUntilTimestamp) plankGraceUntilTimestamp = now + 900;
+
+                            if (now <= plankGraceUntilTimestamp && plankHoldStartTimestamp) {
+                                statusText.innerText = "Hold steady...";
+                            } else {
+                                const formHint = !isSideProfile ? "Turn sideways to the camera." : "Keep shoulders, hips, knees, and ankles aligned.";
+                                resetPlankSession(formHint);
+                            }
                         }
                     } else {
-                        statusText.innerText = "Awaiting skeleton framework framing match sync...";
-                        lastPlankTickTimestamp = null;
+                        statusText.style.color = "#ff9800";
+                        if (!plankGraceUntilTimestamp) plankGraceUntilTimestamp = now + 900;
+                        if (now <= plankGraceUntilTimestamp && plankHoldStartTimestamp) {
+                            statusText.innerText = "Tracking interrupted. Hold steady...";
+                        } else {
+                            resetPlankSession("Step back so your full side profile is visible.");
+                        }
                     }
                 }
             }
