@@ -175,6 +175,11 @@
         .shop-info { display: flex; flex-direction: column; }
         .shop-title { font-weight: bold; font-size: 0.9rem; }
         .shop-cost { font-size: 0.75rem; color: #ff9800; }
+        .badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+        .achievement-badge { background: #121212; border: 1px solid #2d2d2d; border-radius: 8px; padding: 10px; opacity: 0.45; }
+        .achievement-badge.unlocked { border-color: #4CAF50; opacity: 1; }
+        .badge-name { font-size: 0.78rem; font-weight: bold; margin-bottom: 3px; }
+        .badge-desc { font-size: 0.68rem; color: #888; line-height: 1.25; }
     </style>
 </head>
 <body>
@@ -199,6 +204,9 @@
                 <div id="xpBarFill" style="width: 0%; height: 100%; background: #4CAF50; transition: width 0.4s ease;"></div>
             </div>
             <div style="font-size: 0.75rem; color: #aaa; margin-bottom: 15px; text-align: right;" id="rawXpDisplay">Wallet: 0 XP</div>
+
+            <h3>🏅 Achievements</h3>
+            <div class="badge-grid" id="achievementContainer"></div>
 
             <h3>🌅 Morning Routine</h3>
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 25px;" id="routineContainer"></div>
@@ -357,6 +365,8 @@
 
         let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
         let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
+        let unlockedAchievements = JSON.parse(localStorage.getItem('pushApp_Achievements')) || [];
+        let lastLoginBonusDate = localStorage.getItem('pushApp_LastLoginBonusDate') || '';
 
         // --- MARKETPLACE DATABASE ENGINE ---
         let unlockedThemes = JSON.parse(localStorage.getItem('pushApp_UnlockedThemes')) || ['default'];
@@ -391,6 +401,22 @@
             { id: 'teeth', label: '🦷 Brush teeth', xp: 10 },
             { id: 'hair', label: '💇 Do hair', xp: 15 },
             { id: 'breakfast', label: '🍳 Eat a healthy breakfast', xp: 30 }
+        ];
+
+        const levelRewardBonuses = {
+            2: 25,
+            5: 75,
+            10: 150,
+            20: 300
+        };
+
+        const achievements = [
+            { id: 'first_pushup', name: 'First Rep', desc: 'Complete your first push-up.', xp: 10, isUnlocked: () => getTotalStat('pushups') >= 1 },
+            { id: 'pushup_100', name: 'Century Club', desc: 'Complete 100 total push-ups.', xp: 40, isUnlocked: () => getTotalStat('pushups') >= 100 },
+            { id: 'plank_60', name: 'Core Locked', desc: 'Hold planks for 60 total seconds.', xp: 30, isUnlocked: () => getTotalStat('plank') >= 60 },
+            { id: 'routine_done', name: 'Morning Champion', desc: 'Finish every morning routine task in one day.', xp: 50, isUnlocked: () => completedRoutineTasks.length >= morningQuests.length },
+            { id: 'streak_3', name: 'Three-Day Spark', desc: 'Reach a 3-day push-up goal streak.', xp: 50, isUnlocked: () => calculateStreak() >= 3 },
+            { id: 'level_5', name: 'Level 5 Athlete', desc: 'Reach Level 5.', xp: 75, isUnlocked: () => userLevel >= 5 }
         ];
 
         window.switchTab = function(targetView) {
@@ -562,9 +588,11 @@
             while (userLevelXP >= xpNeeded) {
                 userLevelXP -= xpNeeded;
                 userLevel++;
+                const levelBonus = levelRewardBonuses[userLevel] || Math.max(10, userLevel * 5);
+                userWalletXP += levelBonus;
                 xpNeeded = userLevel * 100;
                 triggerHaptic();
-                alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
+                alert(`🚀 LEVEL UP! You reached Level ${userLevel} and earned +${levelBonus} bonus wallet XP!`);
             }
             if (userLevelXP < 0) userLevelXP = 0;
             if (userWalletXP < 0) userWalletXP = 0;
@@ -574,6 +602,58 @@
             localStorage.setItem('pushApp_WalletXP', userWalletXP);
             localStorage.setItem('pushApp_Level', userLevel);
             updateGamificationUI();
+            checkAchievements();
+        }
+
+        function addWalletBonus(amount) {
+            userWalletXP += amount;
+            localStorage.setItem('pushApp_WalletXP', userWalletXP);
+            updateGamificationUI();
+        }
+
+        function awardDailyLoginBonus() {
+            if (lastLoginBonusDate === todayStr) return;
+            lastLoginBonusDate = todayStr;
+            localStorage.setItem('pushApp_LastLoginBonusDate', todayStr);
+            addXP(10);
+            alert('🎁 Daily Check-in Bonus: +10 XP!');
+        }
+
+        function getTotalStat(statName) {
+            return Object.values(appHistory).reduce((total, entry) => total + (entry[statName] || 0), 0);
+        }
+
+        function checkAchievements() {
+            let newlyUnlocked = [];
+            achievements.forEach(badge => {
+                if (!unlockedAchievements.includes(badge.id) && badge.isUnlocked()) {
+                    unlockedAchievements.push(badge.id);
+                    addWalletBonus(badge.xp);
+                    newlyUnlocked.push(badge);
+                }
+            });
+
+            if (newlyUnlocked.length > 0) {
+                localStorage.setItem('pushApp_Achievements', JSON.stringify(unlockedAchievements));
+                alert(`🏅 Achievement Unlocked: ${newlyUnlocked[0].name}! +${newlyUnlocked[0].xp} wallet XP`);
+            }
+            renderAchievements();
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievementContainer');
+            container.innerHTML = '';
+
+            achievements.forEach(badge => {
+                const isUnlocked = unlockedAchievements.includes(badge.id);
+                const item = document.createElement('div');
+                item.className = `achievement-badge ${isUnlocked ? 'unlocked' : ''}`;
+                item.innerHTML = `
+                    <div class="badge-name">${isUnlocked ? '🏅' : '🔒'} ${badge.name}</div>
+                    <div class="badge-desc">${badge.desc}</div>
+                `;
+                container.appendChild(item);
+            });
         }
 
         window.toggleRoutineTask = function(id, xpValue) {
@@ -696,6 +776,7 @@
                 if(currentStreak > 365) break;
             }
             document.getElementById('streakDisplay').innerText = `🔥 ${currentStreak} Days`;
+            return currentStreak;
         }
 
         function renderHeatmap() {
@@ -826,8 +907,11 @@
         applyGlobalTheme(activeTheme);
         renderMorningRoutine();
         renderMarketplace();
+        renderAchievements();
         updateGamificationUI();
         updateUI();
+        checkAchievements();
+        awardDailyLoginBonus();
 
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
