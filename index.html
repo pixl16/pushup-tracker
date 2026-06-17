@@ -348,7 +348,13 @@
         let goals = JSON.parse(localStorage.getItem('pushAppGoals')) || { pushups: 50, plank: 60 };
         let prs = JSON.parse(localStorage.getItem('pushAppPRs')) || { maxPushups: 0, longestPlank: 0 };
         
-        let userXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
+        const legacyXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
+        let userLevelXP = parseInt(localStorage.getItem('pushApp_LevelXP'));
+        let userWalletXP = parseInt(localStorage.getItem('pushApp_WalletXP'));
+
+        if (isNaN(userLevelXP)) userLevelXP = legacyXP;
+        if (isNaN(userWalletXP)) userWalletXP = legacyXP;
+
         let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
         let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
 
@@ -427,16 +433,16 @@
             if (unlockedThemes.includes(themeId)) {
                 applyGlobalTheme(themeId);
             } else {
-                if (userXP >= cost) {
-                    userXP -= cost;
+                if (userWalletXP >= cost) {
+                    userWalletXP -= cost;
                     unlockedThemes.push(themeId);
                     localStorage.setItem('pushApp_UnlockedThemes', JSON.stringify(unlockedThemes));
-                    localStorage.setItem('pushApp_XP', userXP);
+                    localStorage.setItem('pushApp_WalletXP', userWalletXP);
                     applyGlobalTheme(themeId);
                     updateGamificationUI();
                     alert(`🎨 Theme Unlocked & Equipped! Your dashboard style has evolved.`);
                 } else {
-                    alert(`❌ Insufficient Funds! You need ${cost - userXP} more XP points to claim this skin.`);
+                    alert(`❌ Insufficient Funds! You need ${cost - userWalletXP} more XP points to claim this skin.`);
                 }
             }
         };
@@ -548,19 +554,24 @@
         });
 
         function addXP(amount) {
-            userXP += amount;
+            userLevelXP += amount;
+            userWalletXP += amount;
+
             let xpNeeded = userLevel * 100;
             
-            while (userXP >= xpNeeded) {
-                userXP -= xpNeeded;
+            while (userLevelXP >= xpNeeded) {
+                userLevelXP -= xpNeeded;
                 userLevel++;
                 xpNeeded = userLevel * 100;
                 triggerHaptic();
                 alert(`🚀 LEVEL UP! You reached Level ${userLevel}!`);
             }
-            if (userXP < 0) userXP = 0;
+            if (userLevelXP < 0) userLevelXP = 0;
+            if (userWalletXP < 0) userWalletXP = 0;
 
-            localStorage.setItem('pushApp_XP', userXP);
+            localStorage.setItem('pushApp_XP', userLevelXP);
+            localStorage.setItem('pushApp_LevelXP', userLevelXP);
+            localStorage.setItem('pushApp_WalletXP', userWalletXP);
             localStorage.setItem('pushApp_Level', userLevel);
             updateGamificationUI();
         }
@@ -599,9 +610,9 @@
 
         function updateGamificationUI() {
             document.getElementById('levelDisplay').innerText = `LVL ${userLevel}`;
-            document.getElementById('rawXpDisplay').innerText = `Wallet: ${userXP} XP`;
+            document.getElementById('rawXpDisplay').innerText = `Wallet: ${userWalletXP} XP`;
             let xpNeeded = userLevel * 100;
-            let pct = (userXP / xpNeeded) * 100;
+            let pct = (userLevelXP / xpNeeded) * 100;
             document.getElementById('xpBarFill').style.width = `${pct}%`;
         }
 
