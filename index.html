@@ -148,6 +148,21 @@
         .stat-chip { background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px 8px; box-sizing: border-box; }
         .stat-label { color: #888; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
         .stat-value { color: #fff; font-size: 1rem; font-weight: 800; margin-top: 3px; }
+        .workout-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .workout-mini { background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 9px 8px; box-sizing: border-box; }
+        .workout-mini-label { color: #888; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .workout-mini-value { color: #fff; font-size: 0.95rem; font-weight: 900; margin-top: 3px; }
+        .custom-goal-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 10px; }
+        .custom-goal-input { min-width: 0; background: #121212; border: 1px solid #2d2d2d; color: #fff; border-radius: 10px; padding: 10px; font: inherit; font-size: 0.86rem; }
+        .custom-goal-add { border: none; border-radius: 10px; background: #4CAF50; color: #000; padding: 0 13px; font-weight: 900; cursor: pointer; }
+        .custom-goal-list { display: flex; flex-direction: column; gap: 8px; }
+        .custom-goal-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 8px; background: #121212; border: 1px solid #2d2d2d; border-radius: 8px; padding: 9px; }
+        .custom-goal-row.done { border-color: #4CAF50; }
+        .custom-goal-title { min-width: 0; font-size: 0.86rem; overflow-wrap: anywhere; }
+        .custom-goal-row.done .custom-goal-title { color: #aaa; text-decoration: line-through; }
+        .custom-goal-btn { border: none; border-radius: 8px; padding: 6px 9px; font-size: 0.72rem; font-weight: 900; cursor: pointer; white-space: nowrap; }
+        .custom-goal-btn.complete { background: #4CAF50; color: #fff; }
+        .custom-goal-btn.undo, .custom-goal-btn.remove { background: #222; color: #aaa; border: 1px solid #333; }
         .profile-hero { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
         .profile-avatar { width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #121212; border: 1px solid #2d2d2d; color: #4CAF50; font-size: 1.4rem; font-weight: 900; }
         .profile-name { font-size: 1rem; font-weight: 900; margin-bottom: 3px; }
@@ -186,8 +201,9 @@
         .preset-btn { background-color: #121212; border: 1px solid #2d2d2d; color: #fff; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .preset-btn.selected { border-color: #4CAF50; color: #4CAF50; }
 
-        .mode-container { display: flex; background-color: #1e1e1e; padding: 4px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #2d2d2d; width: 100%; }
-        .mode-btn { flex: 1; background: none; border: none; color: #888; padding: 8px; font-weight: bold; font-size: 0.9rem; border-radius: 8px; cursor: pointer; }
+        .mode-container { display: flex; gap: 4px; background-color: #1e1e1e; padding: 4px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #2d2d2d; width: 100%; overflow-x: auto; box-sizing: border-box; scrollbar-width: none; }
+        .mode-container::-webkit-scrollbar { display: none; }
+        .mode-btn { flex: 0 0 auto; min-width: 82px; background: none; border: none; color: #888; padding: 8px 10px; font-weight: bold; font-size: 0.82rem; border-radius: 8px; cursor: pointer; white-space: nowrap; }
         .mode-btn.active { background-color: #333; color: #4CAF50; }
         .counter-container { position: relative; width: 180px; height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; }
         .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
@@ -375,9 +391,23 @@
             </div>
         </div>
 
+        <div class="section-title">Workouts</div>
+        <div class="compact-card">
+            <div class="workout-strip" id="todayWorkoutSummary"></div>
+        </div>
+
         <div class="section-title">Morning Routine</div>
         <div class="compact-card">
             <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;" id="routineContainer"></div>
+        </div>
+
+        <div class="section-title">Daily Checklist</div>
+        <div class="compact-card">
+            <div class="custom-goal-form">
+                <input class="custom-goal-input" id="customGoalInput" placeholder="Add a goal for today">
+                <button class="custom-goal-add" onclick="addCustomGoal()">Add</button>
+            </div>
+            <div class="custom-goal-list" id="customGoalContainer"></div>
         </div>
 
         <div class="section-title">Focus</div>
@@ -399,6 +429,10 @@
         <div class="mode-container">
             <button class="mode-btn active" id="btn-pushups" onclick="setMode('pushups')">Push-ups</button>
             <button class="mode-btn" id="btn-plank" onclick="setMode('plank')">Planks</button>
+            <button class="mode-btn" id="btn-squats" onclick="setMode('squats')">Squats</button>
+            <button class="mode-btn" id="btn-lunges" onclick="setMode('lunges')">Lunges</button>
+            <button class="mode-btn" id="btn-situps" onclick="setMode('situps')">Sit-ups</button>
+            <button class="mode-btn" id="btn-vups" onclick="setMode('vups')">V-ups</button>
         </div>
         
         <div class="counter-container">
@@ -518,6 +552,16 @@
             }, 3200);
         }
 
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[char]));
+        }
+
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -540,12 +584,29 @@
         };
 
         const todayStr = getTodayDate();
+        const exerciseModes = {
+            pushups: { label: 'Push-ups', shortLabel: 'Push', unit: 'reps', goal: 50, bump: 10, type: 'rep' },
+            plank: { label: 'Plank', shortLabel: 'Plank', unit: 'seconds', goal: 60, bump: 15, type: 'timed' },
+            squats: { label: 'Squats', shortLabel: 'Squats', unit: 'reps', goal: 50, bump: 10, type: 'rep' },
+            lunges: { label: 'Lunges', shortLabel: 'Lunges', unit: 'reps', goal: 30, bump: 10, type: 'rep' },
+            situps: { label: 'Sit-ups', shortLabel: 'Sit-ups', unit: 'reps', goal: 40, bump: 10, type: 'rep' },
+            vups: { label: 'V-ups', shortLabel: 'V-ups', unit: 'reps', goal: 30, bump: 10, type: 'rep' }
+        };
+        const defaultGoals = Object.fromEntries(Object.entries(exerciseModes).map(([id, mode]) => [id, mode.goal]));
+
+        function ensureHistoryEntry(dateKey) {
+            if (!appHistory[dateKey]) appHistory[dateKey] = {};
+            Object.keys(exerciseModes).forEach(mode => {
+                if (!Number.isFinite(appHistory[dateKey][mode])) appHistory[dateKey][mode] = 0;
+            });
+        }
         
         let appHistory = JSON.parse(localStorage.getItem('pushAppUnifiedHistory')) || {};
-        if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
+        ensureHistoryEntry(todayStr);
 
-        let goals = JSON.parse(localStorage.getItem('pushAppGoals')) || { pushups: 50, plank: 60 };
+        let goals = { ...defaultGoals, ...(JSON.parse(localStorage.getItem('pushAppGoals')) || {}) };
         let prs = JSON.parse(localStorage.getItem('pushAppPRs')) || { maxPushups: 0, longestPlank: 0 };
+        prs.bestByMode = { pushups: prs.maxPushups || 0, plank: prs.longestPlank || 0, ...(prs.bestByMode || {}) };
         
         const legacyXP = parseInt(localStorage.getItem('pushApp_XP')) || 0;
         let userLevelXP = parseInt(localStorage.getItem('pushApp_LevelXP'));
@@ -562,6 +623,8 @@
 
         let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
         let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
+        let customGoalHistory = JSON.parse(localStorage.getItem('pushApp_CustomGoalHistory')) || {};
+        let customDailyGoals = customGoalHistory[todayStr] || [];
         let unlockedAchievements = JSON.parse(localStorage.getItem('pushApp_Achievements')) || [];
         let lastLoginBonusDate = localStorage.getItem('pushApp_LastLoginBonusDate') || '';
 
@@ -653,6 +716,11 @@
             return routines;
         }
 
+        function saveCustomGoalsLocal() {
+            customGoalHistory[todayStr] = customDailyGoals;
+            localStorage.setItem('pushApp_CustomGoalHistory', JSON.stringify(customGoalHistory));
+        }
+
         function buildUserDataForCloud() {
             return {
                 version: 1,
@@ -665,6 +733,7 @@
                 userLevel,
                 localProfile,
                 routineHistory: getRoutineHistoryFromLocalStorage(),
+                customGoalHistory,
                 unlockedAchievements,
                 lastLoginBonusDate,
                 unlockedThemes,
@@ -685,6 +754,7 @@
             localStorage.setItem('pushApp_Level', userLevel);
             localStorage.setItem('pushApp_LocalProfile', JSON.stringify(localProfile));
             localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
+            saveCustomGoalsLocal();
             localStorage.setItem('pushApp_Achievements', JSON.stringify(unlockedAchievements));
             localStorage.setItem('pushApp_LastLoginBonusDate', lastLoginBonusDate);
             localStorage.setItem('pushApp_UnlockedThemes', JSON.stringify(unlockedThemes));
@@ -704,9 +774,11 @@
         window.applyPushAppCloudData = function(data) {
             if (!data) return;
             appHistory = data.appHistory || appHistory;
-            if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
-            goals = data.goals || goals;
+            ensureHistoryEntry(todayStr);
+            Object.keys(appHistory).forEach(ensureHistoryEntry);
+            goals = { ...defaultGoals, ...(data.goals || goals) };
             prs = data.prs || prs;
+            prs.bestByMode = { pushups: prs.maxPushups || 0, plank: prs.longestPlank || 0, ...(prs.bestByMode || {}) };
             userLevelXP = Number.isFinite(data.userLevelXP) ? data.userLevelXP : userLevelXP;
             userWalletXP = Number.isFinite(data.userWalletXP) ? data.userWalletXP : userWalletXP;
             userLevel = Number.isFinite(data.userLevel) ? data.userLevel : userLevel;
@@ -715,6 +787,8 @@
             Object.entries(data.routineHistory || {}).forEach(([date, tasks]) => {
                 localStorage.setItem(`pushApp_Routine_${date}`, JSON.stringify(tasks || []));
             });
+            customGoalHistory = data.customGoalHistory || customGoalHistory;
+            customDailyGoals = customGoalHistory[todayStr] || customDailyGoals;
             unlockedAchievements = data.unlockedAchievements || unlockedAchievements;
             lastLoginBonusDate = data.lastLoginBonusDate || lastLoginBonusDate;
             unlockedThemes = data.unlockedThemes || unlockedThemes;
@@ -725,6 +799,7 @@
             saveLocalBackup();
             applyGlobalTheme(activeTheme);
             renderMorningRoutine();
+            renderCustomGoals();
             renderMarketplace();
             renderAchievements();
             updateGamificationUI();
@@ -1035,13 +1110,12 @@
         function getHistoryEntries() {
             return Object.entries(appHistory).map(([date, entry]) => ({
                 date,
-                pushups: entry.pushups || 0,
-                plank: entry.plank || 0
+                ...Object.fromEntries(Object.keys(exerciseModes).map(mode => [mode, entry[mode] || 0]))
             }));
         }
 
         function getBestHistoryDay(metric) {
-            return getHistoryEntries().reduce((best, entry) => entry[metric] > best[metric] ? entry : best, { date: 'No data yet', pushups: 0, plank: 0 });
+            return getHistoryEntries().reduce((best, entry) => entry[metric] > best[metric] ? entry : best, { date: 'No data yet', ...Object.fromEntries(Object.keys(exerciseModes).map(mode => [mode, 0])) });
         }
 
         function renderProfile() {
@@ -1148,6 +1222,86 @@
             });
         }
 
+        function renderTodayWorkoutSummary() {
+            const container = document.getElementById('todayWorkoutSummary');
+            if (!container) return;
+            ensureHistoryEntry(todayStr);
+            container.innerHTML = '';
+            Object.entries(exerciseModes).forEach(([modeId, mode]) => {
+                const value = appHistory[todayStr][modeId] || 0;
+                const unit = mode.type === 'timed' ? 's' : '';
+                const item = document.createElement('div');
+                item.className = 'workout-mini';
+                item.innerHTML = `
+                    <div class="workout-mini-label">${mode.shortLabel}</div>
+                    <div class="workout-mini-value">${value}${unit}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        window.addCustomGoal = function() {
+            triggerHaptic();
+            const input = document.getElementById('customGoalInput');
+            const label = input.value.trim();
+            if (!label) return;
+
+            customDailyGoals.push({
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+                label,
+                done: false
+            });
+            input.value = '';
+            saveCustomGoalsLocal();
+            persistUserData();
+            renderCustomGoals();
+        };
+
+        window.toggleCustomGoal = function(id) {
+            triggerHaptic();
+            const goal = customDailyGoals.find(item => item.id === id);
+            if (!goal) return;
+
+            goal.done = !goal.done;
+            addXP(goal.done ? 10 : -10);
+            if (goal.done) markMeaningfulActivity('daily checklist');
+            saveCustomGoalsLocal();
+            persistUserData();
+            renderCustomGoals();
+        };
+
+        window.removeCustomGoal = function(id) {
+            triggerHaptic();
+            const goal = customDailyGoals.find(item => item.id === id);
+            if (goal?.done) addXP(-10);
+            customDailyGoals = customDailyGoals.filter(item => item.id !== id);
+            saveCustomGoalsLocal();
+            persistUserData();
+            renderCustomGoals();
+        };
+
+        function renderCustomGoals() {
+            const container = document.getElementById('customGoalContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (customDailyGoals.length === 0) {
+                container.innerHTML = `<div class="fame-detail">Build today's checklist. Each completed task is worth 10 XP.</div>`;
+                return;
+            }
+
+            customDailyGoals.forEach(goal => {
+                const row = document.createElement('div');
+                row.className = `custom-goal-row ${goal.done ? 'done' : ''}`;
+                row.innerHTML = `
+                    <div class="custom-goal-title">${escapeHtml(goal.label)}</div>
+                    <button class="custom-goal-btn ${goal.done ? 'undo' : 'complete'}" onclick="toggleCustomGoal('${goal.id}')">${goal.done ? 'Undo' : '+10 XP'}</button>
+                    <button class="custom-goal-btn remove" onclick="removeCustomGoal('${goal.id}')">Remove</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
         window.toggleRoutineTask = function(id, xpValue) {
             triggerHaptic();
             if (completedRoutineTasks.includes(id)) {
@@ -1201,10 +1355,13 @@
 
         window.setMode = function(mode) {
             triggerHaptic();
+            if (!exerciseModes[mode]) return;
             currentMode = mode;
-            document.getElementById('btn-pushups').classList.toggle('active', mode === 'pushups');
-            document.getElementById('btn-plank').classList.toggle('active', mode === 'plank');
-            counterLabel.innerText = mode === 'pushups' ? "Reps" : "Seconds";
+            Object.keys(exerciseModes).forEach(modeId => {
+                document.getElementById(`btn-${modeId}`)?.classList.toggle('active', mode === modeId);
+            });
+            counterLabel.innerText = exerciseModes[mode].unit;
+            positionState = "up";
             currentPlankSessionSeconds = 0;
             lastPlankTickTimestamp = null;
             plankHoldStartTimestamp = null;
@@ -1214,20 +1371,22 @@
         };
 
         function updateUI() {
+            ensureHistoryEntry(todayStr);
             let todayCount = appHistory[todayStr][currentMode] || 0;
-            let currentGoal = goals[currentMode];
+            let currentGoal = goals[currentMode] || exerciseModes[currentMode].goal;
             
             counterDisplay.innerText = todayCount;
             goalDisplay.innerText = currentGoal;
             document.getElementById('todayPushups').innerText = appHistory[todayStr].pushups || 0;
             document.getElementById('todayPlank').innerText = `${appHistory[todayStr].plank || 0}s`;
+            renderTodayWorkoutSummary();
             
             setProgress((todayCount / currentGoal) * 100);
             calculateStreak();
             renderHeatmap();
             
-            document.getElementById('prPushups').innerText = `${prs.maxPushups} reps`;
-            document.getElementById('prPlank').innerText = `${prs.longestPlank}s`;
+            document.getElementById('prPushups').innerText = `${prs.maxPushups || 0} reps`;
+            document.getElementById('prPlank').innerText = `${prs.longestPlank || 0}s`;
             renderProfile();
             renderHallOfFame();
         }
@@ -1235,7 +1394,7 @@
         window.changeDailyGoal = function() {
             triggerHaptic();
             let currentGoal = goals[currentMode];
-            let unit = currentMode === 'pushups' ? 'reps' : 'seconds';
+            let unit = exerciseModes[currentMode].unit;
             const newGoal = prompt(`Enter your new daily target (${unit}):`, currentGoal);
             if (newGoal !== null && !isNaN(newGoal) && parseInt(newGoal) > 0) {
                 goals[currentMode] = parseInt(newGoal);
@@ -1249,8 +1408,8 @@
             if (score === target) {
                 triggerHaptic();
                 setTimeout(() => {
-                    let unit = currentMode === 'pushups' ? 'push-ups' : 'plank hold';
-                    let bump = currentMode === 'pushups' ? 10 : 15;
+                    let unit = exerciseModes[currentMode].label.toLowerCase();
+                    let bump = exerciseModes[currentMode].bump;
                     let answer = confirm(`🎉 Target Met! Raise your daily ${unit} goal by +${bump}?`);
                     if(answer) {
                         goals[currentMode] += bump;
@@ -1269,7 +1428,7 @@
 
         function renderHeatmap() {
             heatmapGrid.innerHTML = '';
-            heatmapTitle.innerText = `${currentMode === 'pushups' ? 'Push-up' : 'Plank'} Activity Matrix (4 Weeks)`;
+            heatmapTitle.innerText = `${exerciseModes[currentMode].label} Activity Matrix (4 Weeks)`;
             let currentGoal = goals[currentMode];
 
             for (let i = 27; i >= 0; i--) {
@@ -1316,6 +1475,80 @@
                 .sort((a, b) => b.visibility - a.visibility)[0];
         }
 
+        function getBestExerciseSide(landmarks) {
+            const sides = [
+                { shoulder: landmarks[11], elbow: landmarks[13], wrist: landmarks[15], hip: landmarks[23], knee: landmarks[25], ankle: landmarks[27] },
+                { shoulder: landmarks[12], elbow: landmarks[14], wrist: landmarks[16], hip: landmarks[24], knee: landmarks[26], ankle: landmarks[28] }
+            ];
+
+            return sides
+                .map(side => ({
+                    ...side,
+                    visibility: [side.shoulder, side.hip, side.knee, side.ankle].reduce((total, point) => total + (point.visibility || 0), 0) / 4
+                }))
+                .sort((a, b) => b.visibility - a.visibility)[0];
+        }
+
+        function recordWorkoutUnit(mode, amount = 1) {
+            ensureHistoryEntry(todayStr);
+            appHistory[todayStr][mode] += amount;
+            prs.bestByMode[mode] = Math.max(prs.bestByMode[mode] || 0, appHistory[todayStr][mode]);
+            if (mode === 'pushups') prs.maxPushups = Math.max(prs.maxPushups || 0, appHistory[todayStr].pushups);
+            if (mode === 'plank') prs.longestPlank = Math.max(prs.longestPlank || 0, amount === 1 ? plankCreditedSeconds : appHistory[todayStr].plank);
+            localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
+            localStorage.setItem('pushAppPRs', JSON.stringify(prs));
+            addXP(2);
+            markMeaningfulActivity('workout');
+            updateUI();
+            triggerGoalUpsellCheck(appHistory[todayStr][mode], goals[mode]);
+        }
+
+        function countBodyweightRep(mode, landmarks) {
+            const side = getBestExerciseSide(landmarks);
+            if (side.visibility <= 0.55) {
+                statusText.style.color = "#ff9800";
+                statusText.innerText = "Step back so your full body is visible.";
+                return;
+            }
+
+            let isDown = false;
+            let isReset = false;
+            let hint = "Move through a full rep.";
+
+            if (mode === 'squats') {
+                const kneeAngle = calculateAngle(side.hip, side.knee, side.ankle);
+                isDown = kneeAngle < 105;
+                isReset = kneeAngle > 160;
+                hint = "Squat until your knees bend, then stand tall.";
+            } else if (mode === 'lunges') {
+                const frontKneeAngle = calculateAngle(side.hip, side.knee, side.ankle);
+                isDown = frontKneeAngle < 105;
+                isReset = frontKneeAngle > 155;
+                hint = "Turn sideways and lower into the lunge, then stand tall.";
+            } else if (mode === 'situps') {
+                const torsoAngle = calculateAngle(side.shoulder, side.hip, side.knee);
+                isDown = torsoAngle < 95;
+                isReset = torsoAngle > 135;
+                hint = "Lie sideways to the camera, sit up, then return down.";
+            } else if (mode === 'vups') {
+                const foldAngle = calculateAngle(side.shoulder, side.hip, side.ankle);
+                isDown = foldAngle < 90;
+                isReset = foldAngle > 135;
+                hint = "Fold into a V, then open back up.";
+            }
+
+            statusText.style.color = "#ff9800";
+            statusText.innerText = hint;
+
+            if (isDown && positionState === "up") {
+                positionState = "down";
+            } else if (isReset && positionState === "down") {
+                triggerHaptic();
+                recordWorkoutUnit(mode);
+                positionState = "up";
+            }
+        }
+
         function resetPlankSession(message) {
             if (message) statusText.innerText = message;
             lastPlankTickTimestamp = null;
@@ -1347,17 +1580,8 @@
                         let angle = calculateAngle(shoulder, elbow, wrist);
                         if (angle < 90 && positionState === "up") positionState = "down";
                         else if (angle > 160 && positionState === "down") {
-                            triggerHaptic(); // Tactical buzz on completed reps
-                            appHistory[todayStr].pushups++;
-                            localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
-                            if (appHistory[todayStr].pushups > prs.maxPushups) {
-                                prs.maxPushups = appHistory[todayStr].pushups;
-                                localStorage.setItem('pushAppPRs', JSON.stringify(prs));
-                            }
-                            addXP(2); 
-                            markMeaningfulActivity('workout');
-                            updateUI();
-                            triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
+                            triggerHaptic();
+                            recordWorkoutUnit('pushups');
                             positionState = "up";
                         }
                     }
@@ -1389,17 +1613,7 @@
                             while (currentPlankSessionSeconds > plankCreditedSeconds) {
                                 plankCreditedSeconds++;
                                 triggerHaptic();
-                                appHistory[todayStr].plank++;
-                                localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
-
-                                if (plankCreditedSeconds > prs.longestPlank) {
-                                    prs.longestPlank = plankCreditedSeconds;
-                                    localStorage.setItem('pushAppPRs', JSON.stringify(prs));
-                                }
-                                addXP(2);
-                                markMeaningfulActivity('workout');
-                                updateUI();
-                                triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
+                                recordWorkoutUnit('plank');
                             }
                         } else {
                             statusText.style.color = "#ff9800";
@@ -1422,6 +1636,9 @@
                         }
                     }
                 }
+                else {
+                    countBodyweightRep(currentMode, results.poseLandmarks);
+                }
             }
             canvasCtx.restore();
         }
@@ -1429,6 +1646,7 @@
         // Initialize state configuration setup
         applyGlobalTheme(activeTheme);
         renderMorningRoutine();
+        renderCustomGoals();
         renderMarketplace();
         renderAchievements();
         updateGamificationUI();
