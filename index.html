@@ -228,19 +228,26 @@
         .toast-icon { color: #4CAF50; font-weight: 900; text-align: center; }
         .toast-title { font-size: 0.84rem; font-weight: 800; margin-bottom: 2px; }
         .toast-message { color: #aaa; font-size: 0.74rem; line-height: 1.25; }
-        .auth-card { width: 100%; max-width: 400px; background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 14px; padding: 14px; margin-bottom: 12px; box-sizing: border-box; }
+        .auth-overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); z-index: 9000; box-sizing: border-box; }
+        body.auth-locked { overflow: hidden; }
+        body.auth-locked .auth-overlay { display: flex; }
+        body.auth-locked .floating-dock, body.auth-locked .app-view, body.auth-locked .header-ui { filter: blur(2px); pointer-events: none; user-select: none; }
+        .auth-card { width: 100%; max-width: 400px; background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 14px; padding: 18px; box-sizing: border-box; box-shadow: 0 24px 70px rgba(0,0,0,0.6); }
         .auth-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
-        .auth-title { font-weight: 900; font-size: 0.95rem; }
+        .auth-title { font-weight: 900; font-size: 1.15rem; }
         .auth-status { color: #888; font-size: 0.72rem; text-align: right; overflow-wrap: anywhere; }
+        .auth-copy { color: #aaa; font-size: 0.82rem; line-height: 1.35; margin: 0 0 14px; }
         .auth-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
         .auth-field { width: 100%; box-sizing: border-box; background: #121212; border: 1px solid #2d2d2d; color: #fff; border-radius: 8px; padding: 10px; font: inherit; font-size: 0.86rem; }
         .auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .auth-btn { border: none; border-radius: 10px; padding: 10px; font-weight: 900; cursor: pointer; background: #333; color: #fff; }
         .auth-btn.primary { background: #4CAF50; color: #000; }
         .auth-btn.ghost { background: #121212; border: 1px solid #2d2d2d; color: #aaa; }
+        .account-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px; margin-bottom: 12px; }
+        .account-email { color: #aaa; font-size: 0.78rem; overflow-wrap: anywhere; }
     </style>
 </head>
-<body>
+<body class="auth-locked">
 
     <div id="splash-screen">
         <img src="PushApp Logo.png" class="splash-logo" alt="PushApp Logo">
@@ -253,21 +260,78 @@
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
     </div>
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-title">Account</div>
-            <div class="auth-status" id="authStatus">Signed out</div>
-        </div>
-        <div class="auth-grid" id="authSignedOut">
-            <input class="auth-field" id="authEmail" type="email" autocomplete="email" placeholder="Email">
-            <input class="auth-field" id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
-            <div class="auth-actions">
-                <button class="auth-btn primary" onclick="pushAppSignIn()">Log In</button>
-                <button class="auth-btn" onclick="pushAppSignUp()">Sign Up</button>
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div>
+                    <div class="auth-title">PushApp Account</div>
+                    <p class="auth-copy">Log in or sign up to unlock your workout dashboard, profile, achievements, and progress.</p>
+                </div>
+                <div class="auth-status" id="authStatus">Signed out</div>
+            </div>
+            <div class="auth-grid" id="authSignedOut">
+                <input class="auth-field" id="authEmail" type="email" autocomplete="email" placeholder="Email">
+                <input class="auth-field" id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+                <div class="auth-actions">
+                    <button class="auth-btn primary" onclick="pushAppSignIn()">Log In</button>
+                    <button class="auth-btn" onclick="pushAppSignUp()">Sign Up</button>
+                </div>
             </div>
         </div>
-        <div class="auth-grid" id="authSignedIn" style="display: none;">
-            <button class="auth-btn ghost" onclick="pushAppSignOut()">Sign Out</button>
+    </div>
+
+    <div id="view-profile" class="app-view">
+        <div class="compact-card">
+        <div class="auth-header">
+            <div>
+                <div class="auth-title">Profile</div>
+                <div class="auth-status" id="profileAuthStatus">Signed out</div>
+            </div>
+        </div>
+        <div id="profileSignedIn">
+            <div class="account-row">
+                <div>
+                    <div class="stat-label">Account</div>
+                    <div class="account-email" id="profileAccountEmail">Signed in</div>
+                </div>
+                <button class="auth-btn ghost" onclick="pushAppSignOut()">Sign Out</button>
+            </div>
+        </div>
+        <div id="profileSignedOut" style="display: none;">
+            <p class="auth-copy">Log in or sign up to access your PushApp profile.</p>
+            <button class="auth-btn primary" onclick="showAuthOverlay()">Open Login</button>
+        </div>
+        <div class="profile-hero">
+            <div class="profile-avatar" id="profileAvatar">P</div>
+            <div>
+                <div class="profile-name" id="profileName">PushApp Athlete</div>
+                <div class="profile-subtitle" id="profileSubtitle">Level 1 · 0 XP wallet</div>
+            </div>
+        </div>
+        <div class="profile-edit">
+            <input class="profile-field" id="profileNameInput" maxlength="24" placeholder="Display name">
+            <input class="profile-field" id="profileAvatarInput" maxlength="2" placeholder="P">
+            <select class="profile-field" id="profileTitleInput"></select>
+            <button class="profile-save" onclick="saveLocalProfile()">Save Profile</button>
+        </div>
+        <div class="mini-stat-grid">
+            <div class="stat-chip">
+                <div class="stat-label">Total Push-ups</div>
+                <div class="stat-value" id="profileTotalPushups">0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Total Plank</div>
+                <div class="stat-value" id="profileTotalPlank">0s</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Achievements</div>
+                <div class="stat-value" id="profileAchievements">0/19</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Theme</div>
+                <div class="stat-value" id="profileTheme">Default</div>
+            </div>
+        </div>
         </div>
     </div>
 
@@ -365,42 +429,6 @@
             <h3 id="heatmapTitle">Activity View</h3>
             <div class="heatmap-container" id="heatmapGrid"></div>
         </div>
-        <details class="compact-card" open>
-            <summary>Profile</summary>
-            <div class="details-body">
-                <div class="profile-hero">
-                    <div class="profile-avatar" id="profileAvatar">P</div>
-                    <div>
-                        <div class="profile-name" id="profileName">PushApp Athlete</div>
-                        <div class="profile-subtitle" id="profileSubtitle">Level 1 · 0 XP wallet</div>
-                    </div>
-                </div>
-                <div class="profile-edit">
-                    <input class="profile-field" id="profileNameInput" maxlength="24" placeholder="Display name">
-                    <input class="profile-field" id="profileAvatarInput" maxlength="2" placeholder="P">
-                    <select class="profile-field" id="profileTitleInput"></select>
-                    <button class="profile-save" onclick="saveLocalProfile()">Save Profile</button>
-                </div>
-                <div class="mini-stat-grid">
-                    <div class="stat-chip">
-                        <div class="stat-label">Total Push-ups</div>
-                        <div class="stat-value" id="profileTotalPushups">0</div>
-                    </div>
-                    <div class="stat-chip">
-                        <div class="stat-label">Total Plank</div>
-                        <div class="stat-value" id="profileTotalPlank">0s</div>
-                    </div>
-                    <div class="stat-chip">
-                        <div class="stat-label">Achievements</div>
-                        <div class="stat-value" id="profileAchievements">0/19</div>
-                    </div>
-                    <div class="stat-chip">
-                        <div class="stat-label">Theme</div>
-                        <div class="stat-value" id="profileTheme">Default</div>
-                    </div>
-                </div>
-            </div>
-        </details>
         <details class="compact-card">
             <summary>Hall of Fame</summary>
             <div class="details-body">
@@ -434,6 +462,10 @@
         <button class="dock-item" id="tab-progress" onclick="switchTab('progress')">
             <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
             Progress
+        </button>
+        <button class="dock-item" id="tab-profile" onclick="switchTab('profile')">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Profile
         </button>
     </div>
 
@@ -597,10 +629,12 @@
             document.getElementById('view-today').classList.toggle('active-view', targetView === 'today');
             document.getElementById('view-train').classList.toggle('active-view', targetView === 'train');
             document.getElementById('view-progress').classList.toggle('active-view', targetView === 'progress');
+            document.getElementById('view-profile').classList.toggle('active-view', targetView === 'profile');
             
             document.getElementById('tab-today').classList.toggle('active-tab', targetView === 'today');
             document.getElementById('tab-train').classList.toggle('active-tab', targetView === 'train');
             document.getElementById('tab-progress').classList.toggle('active-tab', targetView === 'progress');
+            document.getElementById('tab-profile').classList.toggle('active-tab', targetView === 'profile');
 
             if (targetView === 'train' && !isCameraStarted) {
                 isCameraStarted = true;
@@ -1259,6 +1293,15 @@
 
         const firebaseApp = initializeApp(firebaseConfig);
         const auth = getAuth(firebaseApp);
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+        window.showAuthOverlay = function() {
+            document.body.classList.add('auth-locked');
+        };
+
+        function hideAuthOverlay() {
+            document.body.classList.remove('auth-locked');
+        }
 
         function getAuthFields() {
             return {
@@ -1280,6 +1323,7 @@
 
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
+                localStorage.setItem('pushApp_LastAuthAt', String(Date.now()));
                 authToast('Account created', 'You are signed in to PushApp.', '✓');
             } catch (error) {
                 authToast('Sign up failed', error.message.replace('Firebase: ', ''), '!');
@@ -1295,6 +1339,7 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
+                localStorage.setItem('pushApp_LastAuthAt', String(Date.now()));
                 authToast('Signed in', 'Welcome back to PushApp.', '✓');
             } catch (error) {
                 authToast('Log in failed', error.message.replace('Firebase: ', ''), '!');
@@ -1303,22 +1348,45 @@
 
         window.pushAppSignOut = async function() {
             await signOut(auth);
+            localStorage.removeItem('pushApp_LastAuthAt');
+            if (window.switchTab) window.switchTab('profile');
+            window.showAuthOverlay();
             authToast('Signed out', 'Your local data is still saved on this device.', '✓');
         };
 
         onAuthStateChanged(auth, (user) => {
             const signedOut = document.getElementById('authSignedOut');
-            const signedIn = document.getElementById('authSignedIn');
             const status = document.getElementById('authStatus');
+            const profileStatus = document.getElementById('profileAuthStatus');
+            const profileEmail = document.getElementById('profileAccountEmail');
+            const profileSignedIn = document.getElementById('profileSignedIn');
+            const profileSignedOut = document.getElementById('profileSignedOut');
 
             if (user) {
-                signedOut.style.display = 'none';
-                signedIn.style.display = 'grid';
+                const lastAuthAt = parseInt(localStorage.getItem('pushApp_LastAuthAt')) || Date.now();
+                localStorage.setItem('pushApp_LastAuthAt', String(lastAuthAt));
+
+                if (Date.now() - lastAuthAt > THIRTY_DAYS_MS) {
+                    signOut(auth);
+                    window.showAuthOverlay();
+                    authToast('Login expired', 'Please log in again to continue.', '!');
+                    return;
+                }
+
+                hideAuthOverlay();
+                signedOut.style.display = 'grid';
                 status.innerText = user.email || 'Signed in';
+                if (profileStatus) profileStatus.innerText = user.email || 'Signed in';
+                if (profileEmail) profileEmail.innerText = user.email || 'Signed in';
+                if (profileSignedIn) profileSignedIn.style.display = 'block';
+                if (profileSignedOut) profileSignedOut.style.display = 'none';
             } else {
                 signedOut.style.display = 'grid';
-                signedIn.style.display = 'none';
                 status.innerText = 'Signed out';
+                if (profileStatus) profileStatus.innerText = 'Signed out';
+                if (profileSignedIn) profileSignedIn.style.display = 'none';
+                if (profileSignedOut) profileSignedOut.style.display = 'block';
+                window.showAuthOverlay();
             }
         });
     </script>
