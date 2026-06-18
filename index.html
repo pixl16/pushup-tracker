@@ -144,7 +144,7 @@
         .xp-label { color: #aaa; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
         .xp-wallet { color: #aaa; font-size: 0.75rem; text-align: right; }
         .xp-track { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
-        .today-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+        .today-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
         .stat-chip { background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px 8px; box-sizing: border-box; }
         .stat-label { color: #888; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
         .stat-value { color: #fff; font-size: 1rem; font-weight: 800; margin-top: 3px; }
@@ -330,6 +330,14 @@
                 <div class="stat-label">Theme</div>
                 <div class="stat-value" id="profileTheme">Default</div>
             </div>
+            <div class="stat-chip">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="profileStreak">0 days</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Freezes</div>
+                <div class="stat-value" id="profileFreezes">0</div>
+            </div>
         </div>
         </div>
     </div>
@@ -360,6 +368,10 @@
             <div class="stat-chip">
                 <div class="stat-label">Routine</div>
                 <div class="stat-value" id="routineProgress">0/0</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="todayStreak">0 days</div>
             </div>
         </div>
 
@@ -562,6 +574,7 @@
             { id: 'synthwave', label: '🔮 Cyberpunk Synthwave', cost: 150 },
             { id: 'matrix', label: '📟 The Matrix Terminal', cost: 300 }
         ];
+        const streakFreezeCost = 100;
 
         let currentMode = "pushups"; 
         let positionState = "up"; 
@@ -578,6 +591,12 @@
         let isFocusActive = false;
         let focusSessionsCompleted = parseInt(localStorage.getItem('pushApp_FocusSessionsCompleted')) || 0;
         let focus45SessionsCompleted = parseInt(localStorage.getItem('pushApp_Focus45SessionsCompleted')) || 0;
+        let streakData = JSON.parse(localStorage.getItem('pushApp_StreakData')) || {
+            current: 0,
+            longest: 0,
+            lastActiveDate: '',
+            freezes: 0
+        };
 
         const morningQuests = [
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
@@ -622,6 +641,97 @@
             { id: 'theme_collector', name: 'Theme Collector', desc: 'Unlock every theme in the marketplace.', xp: 100, isUnlocked: () => unlockedThemes.length >= shopThemes.length }
         ];
 
+        function getRoutineHistoryFromLocalStorage() {
+            const routines = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('pushApp_Routine_')) {
+                    routines[key.replace('pushApp_Routine_', '')] = JSON.parse(localStorage.getItem(key)) || [];
+                }
+            }
+            routines[todayStr] = completedRoutineTasks;
+            return routines;
+        }
+
+        function buildUserDataForCloud() {
+            return {
+                version: 1,
+                updatedAt: new Date().toISOString(),
+                appHistory,
+                goals,
+                prs,
+                userLevelXP,
+                userWalletXP,
+                userLevel,
+                localProfile,
+                routineHistory: getRoutineHistoryFromLocalStorage(),
+                unlockedAchievements,
+                lastLoginBonusDate,
+                unlockedThemes,
+                activeTheme,
+                focusSessionsCompleted,
+                focus45SessionsCompleted,
+                streakData
+            };
+        }
+
+        function saveLocalBackup() {
+            localStorage.setItem('pushAppUnifiedHistory', JSON.stringify(appHistory));
+            localStorage.setItem('pushAppGoals', JSON.stringify(goals));
+            localStorage.setItem('pushAppPRs', JSON.stringify(prs));
+            localStorage.setItem('pushApp_XP', userLevelXP);
+            localStorage.setItem('pushApp_LevelXP', userLevelXP);
+            localStorage.setItem('pushApp_WalletXP', userWalletXP);
+            localStorage.setItem('pushApp_Level', userLevel);
+            localStorage.setItem('pushApp_LocalProfile', JSON.stringify(localProfile));
+            localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
+            localStorage.setItem('pushApp_Achievements', JSON.stringify(unlockedAchievements));
+            localStorage.setItem('pushApp_LastLoginBonusDate', lastLoginBonusDate);
+            localStorage.setItem('pushApp_UnlockedThemes', JSON.stringify(unlockedThemes));
+            localStorage.setItem('pushApp_ActiveTheme', activeTheme);
+            localStorage.setItem('pushApp_FocusSessionsCompleted', focusSessionsCompleted);
+            localStorage.setItem('pushApp_Focus45SessionsCompleted', focus45SessionsCompleted);
+            localStorage.setItem('pushApp_StreakData', JSON.stringify(streakData));
+        }
+
+        function persistUserData() {
+            saveLocalBackup();
+            if (window.queueCloudSave) window.queueCloudSave(buildUserDataForCloud());
+        }
+
+        window.getPushAppCloudData = buildUserDataForCloud;
+
+        window.applyPushAppCloudData = function(data) {
+            if (!data) return;
+            appHistory = data.appHistory || appHistory;
+            if (!appHistory[todayStr]) appHistory[todayStr] = { pushups: 0, plank: 0 };
+            goals = data.goals || goals;
+            prs = data.prs || prs;
+            userLevelXP = Number.isFinite(data.userLevelXP) ? data.userLevelXP : userLevelXP;
+            userWalletXP = Number.isFinite(data.userWalletXP) ? data.userWalletXP : userWalletXP;
+            userLevel = Number.isFinite(data.userLevel) ? data.userLevel : userLevel;
+            localProfile = data.localProfile || localProfile;
+            completedRoutineTasks = data.routineHistory?.[todayStr] || completedRoutineTasks;
+            Object.entries(data.routineHistory || {}).forEach(([date, tasks]) => {
+                localStorage.setItem(`pushApp_Routine_${date}`, JSON.stringify(tasks || []));
+            });
+            unlockedAchievements = data.unlockedAchievements || unlockedAchievements;
+            lastLoginBonusDate = data.lastLoginBonusDate || lastLoginBonusDate;
+            unlockedThemes = data.unlockedThemes || unlockedThemes;
+            activeTheme = data.activeTheme || activeTheme;
+            focusSessionsCompleted = Number.isFinite(data.focusSessionsCompleted) ? data.focusSessionsCompleted : focusSessionsCompleted;
+            focus45SessionsCompleted = Number.isFinite(data.focus45SessionsCompleted) ? data.focus45SessionsCompleted : focus45SessionsCompleted;
+            streakData = data.streakData || streakData;
+            saveLocalBackup();
+            applyGlobalTheme(activeTheme);
+            renderMorningRoutine();
+            renderMarketplace();
+            renderAchievements();
+            updateGamificationUI();
+            updateUI();
+            checkAchievements();
+        };
+
         window.switchTab = function(targetView) {
             triggerHaptic();
             document.getElementById('view-today').classList.toggle('active-view', targetView === 'today');
@@ -648,13 +758,14 @@
 
         // --- APPLIES THE UNLOCKED THEMES DYNAMICALLY ---
         function applyGlobalTheme(themeId) {
-            document.body.className = ''; 
+            document.body.classList.remove('theme-synthwave', 'theme-matrix');
             if (themeId !== 'default') {
                 document.body.classList.add(`theme-${themeId}`);
             }
             activeTheme = themeId;
             localStorage.setItem('pushApp_ActiveTheme', themeId);
             renderMarketplace();
+            persistUserData();
         }
 
         window.buyOrEquipTheme = function(themeId, cost) {
@@ -670,6 +781,7 @@
                     applyGlobalTheme(themeId);
                     updateGamificationUI();
                     checkAchievements();
+                    persistUserData();
                     showToast('Theme unlocked', 'Your dashboard style has been equipped.', '✓');
                 } else {
                     showToast('Not enough XP', `You need ${cost - userWalletXP} more XP to claim this theme.`, '!');
@@ -677,9 +789,37 @@
             }
         };
 
+        window.buyStreakFreeze = function() {
+            triggerHaptic();
+            if (userWalletXP < streakFreezeCost) {
+                showToast('Not enough XP', `You need ${streakFreezeCost - userWalletXP} more XP to buy a streak freeze.`, '!');
+                return;
+            }
+            userWalletXP -= streakFreezeCost;
+            streakData.freezes = (streakData.freezes || 0) + 1;
+            updateGamificationUI();
+            updateStreakUI();
+            renderMarketplace();
+            persistUserData();
+            showToast('Streak freeze added', 'Your next missed day can be protected.', '✓');
+        };
+
         function renderMarketplace() {
             const shopContainer = document.getElementById('shopContainer');
             shopContainer.innerHTML = '';
+
+            const freezeItem = document.createElement('div');
+            freezeItem.className = 'shop-item';
+            freezeItem.innerHTML = `
+                <div class="shop-info">
+                    <span class="shop-title">🧊 Streak Freeze</span>
+                    <span class="shop-cost">${streakFreezeCost} XP · Owned: ${streakData.freezes || 0}</span>
+                </div>
+                <button onclick="buyStreakFreeze()" style="background: #4CAF50; border: none; color: white; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.8rem;">
+                    Buy
+                </button>
+            `;
+            shopContainer.appendChild(freezeItem);
 
             shopThemes.forEach(theme => {
                 const isUnlocked = unlockedThemes.includes(theme.id);
@@ -760,6 +900,7 @@
             localStorage.setItem('pushApp_FocusSessionsCompleted', focusSessionsCompleted);
             localStorage.setItem('pushApp_Focus45SessionsCompleted', focus45SessionsCompleted);
             addXP(50);
+            markMeaningfulActivity('focus session');
             resetFocusChamberUI();
         }
 
@@ -811,12 +952,14 @@
             localStorage.setItem('pushApp_Level', userLevel);
             updateGamificationUI();
             checkAchievements();
+            persistUserData();
         }
 
         function addWalletBonus(amount) {
             userWalletXP += amount;
             localStorage.setItem('pushApp_WalletXP', userWalletXP);
             updateGamificationUI();
+            persistUserData();
         }
 
         function awardDailyLoginBonus() {
@@ -840,6 +983,53 @@
             const minutes = Math.floor(totalSeconds / 60);
             const seconds = totalSeconds % 60;
             return seconds ? `${minutes}m ${seconds}s` : `${minutes}m`;
+        }
+
+        function getDateDiffDays(fromDateStr, toDateStr) {
+            const from = new Date(`${fromDateStr}T00:00:00`);
+            const to = new Date(`${toDateStr}T00:00:00`);
+            return Math.round((to - from) / 86400000);
+        }
+
+        function markMeaningfulActivity(activityLabel = 'activity') {
+            if (streakData.lastActiveDate === todayStr) {
+                persistUserData();
+                updateStreakUI();
+                return;
+            }
+
+            if (!streakData.lastActiveDate) {
+                streakData.current = 1;
+            } else {
+                const gapDays = getDateDiffDays(streakData.lastActiveDate, todayStr);
+                if (gapDays === 1) {
+                    streakData.current++;
+                } else if (gapDays > 1) {
+                    const freezesNeeded = gapDays - 1;
+                    if (streakData.freezes >= freezesNeeded) {
+                        streakData.freezes -= freezesNeeded;
+                        streakData.current++;
+                        showToast('Streak protected', `${freezesNeeded} streak freeze${freezesNeeded === 1 ? '' : 's'} used.`, '✓');
+                    } else {
+                        streakData.current = 1;
+                    }
+                }
+            }
+
+            streakData.lastActiveDate = todayStr;
+            streakData.longest = Math.max(streakData.longest || 0, streakData.current || 0);
+            persistUserData();
+            updateStreakUI();
+            checkAchievements();
+            if (streakData.current === 1) showToast('Streak started', `Today's ${activityLabel} counted toward your streak.`, '✓');
+        }
+
+        function updateStreakUI() {
+            const current = streakData.current || 0;
+            document.getElementById('streakDisplay').innerText = `🔥 ${current} Days`;
+            document.getElementById('todayStreak').innerText = `${current} day${current === 1 ? '' : 's'}`;
+            document.getElementById('profileStreak').innerText = `${current} day${current === 1 ? '' : 's'}`;
+            document.getElementById('profileFreezes').innerText = streakData.freezes || 0;
         }
 
         function getHistoryEntries() {
@@ -874,6 +1064,7 @@
             document.getElementById('profileTotalPlank').innerText = formatSeconds(totalPlank);
             document.getElementById('profileAchievements').innerText = `${unlockedCount}/${achievements.length}`;
             document.getElementById('profileTheme').innerText = activeThemeLabel.replace('Default Midnight', 'Default');
+            updateStreakUI();
         }
 
         window.saveLocalProfile = function() {
@@ -885,6 +1076,7 @@
             localProfile = { name, avatar, title };
             localStorage.setItem('pushApp_LocalProfile', JSON.stringify(localProfile));
             renderProfile();
+            persistUserData();
             showToast('Profile saved', 'Your local profile was updated on this device.', '✓');
         };
 
@@ -895,7 +1087,7 @@
                 { title: 'Best Push-up Day', detail: bestPushupDay.date, value: `${bestPushupDay.pushups} reps` },
                 { title: 'Longest Plank Hold', detail: 'Personal record', value: formatSeconds(prs.longestPlank || 0) },
                 { title: 'Best Plank Day', detail: bestPlankDay.date, value: formatSeconds(bestPlankDay.plank) },
-                { title: 'Current Streak', detail: 'Daily push-up goal', value: `${calculateStreak()} days` }
+                { title: 'Current Streak', detail: 'Any meaningful app activity', value: `${calculateStreak()} days` }
             ];
 
             const container = document.getElementById('hallOfFameList');
@@ -929,6 +1121,7 @@
                 localStorage.setItem('pushApp_Achievements', JSON.stringify(unlockedAchievements));
                 const extraCount = newlyUnlocked.length > 1 ? ` and ${newlyUnlocked.length - 1} more` : '';
                 showToast('Achievement unlocked', `${newlyUnlocked[0].name}${extraCount}. +${newlyUnlocked[0].xp} wallet XP.`, '✓');
+                persistUserData();
             }
             renderAchievements();
         }
@@ -963,8 +1156,10 @@
             } else {
                 completedRoutineTasks.push(id);
                 addXP(xpValue);
+                markMeaningfulActivity('routine task');
             }
             localStorage.setItem(`pushApp_Routine_${todayStr}`, JSON.stringify(completedRoutineTasks));
+            persistUserData();
             renderMorningRoutine();
         };
 
@@ -1045,6 +1240,7 @@
             if (newGoal !== null && !isNaN(newGoal) && parseInt(newGoal) > 0) {
                 goals[currentMode] = parseInt(newGoal);
                 localStorage.setItem('pushAppGoals', JSON.stringify(goals));
+                persistUserData();
                 updateUI();
             }
         };
@@ -1059,6 +1255,7 @@
                     if(answer) {
                         goals[currentMode] += bump;
                         localStorage.setItem('pushAppGoals', JSON.stringify(goals));
+                        persistUserData();
                         updateUI();
                     }
                 }, 600);
@@ -1066,25 +1263,8 @@
         }
 
         function calculateStreak() {
-            let currentStreak = 0;
-            let dateIterator = new Date();
-            
-            while (true) {
-                dateIterator.setMinutes(dateIterator.getMinutes() - dateIterator.getTimezoneOffset());
-                let checkStr = dateIterator.toISOString().split('T')[0];
-                let entry = appHistory[checkStr];
-                
-                if (checkStr === todayStr) {
-                    if (entry && entry.pushups >= goals.pushups) currentStreak++;
-                } else {
-                    if (entry && entry.pushups >= goals.pushups) currentStreak++;
-                    else break;
-                }
-                dateIterator.setDate(dateIterator.getDate() - 1);
-                if(currentStreak > 365) break;
-            }
-            document.getElementById('streakDisplay').innerText = `🔥 ${currentStreak} Days`;
-            return currentStreak;
+            updateStreakUI();
+            return streakData.current || 0;
         }
 
         function renderHeatmap() {
@@ -1175,6 +1355,7 @@
                                 localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                             }
                             addXP(2); 
+                            markMeaningfulActivity('workout');
                             updateUI();
                             triggerGoalUpsellCheck(appHistory[todayStr].pushups, goals.pushups);
                             positionState = "up";
@@ -1216,6 +1397,7 @@
                                     localStorage.setItem('pushAppPRs', JSON.stringify(prs));
                                 }
                                 addXP(2);
+                                markMeaningfulActivity('workout');
                                 updateUI();
                                 triggerGoalUpsellCheck(appHistory[todayStr].plank, goals.plank);
                             }
@@ -1273,6 +1455,13 @@
             signOut,
             onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            setDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBt3RGMsGNJXNumbNpMbf5J45je_82hNJ0",
@@ -1286,7 +1475,11 @@
 
         const firebaseApp = initializeApp(firebaseConfig);
         const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
         const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        let activeUser = null;
+        let cloudSaveTimer = null;
+        let cloudLoaded = false;
 
         window.showAuthOverlay = function() {
             document.body.classList.add('auth-locked');
@@ -1305,6 +1498,47 @@
 
         function authToast(title, message, icon = '✓') {
             if (window.showToast) window.showToast(title, message, icon);
+        }
+
+        async function saveCloudDataNow(data = window.getPushAppCloudData?.()) {
+            if (!activeUser || !data) return;
+            try {
+                await setDoc(doc(db, 'users', activeUser.uid), {
+                    ...data,
+                    email: activeUser.email || '',
+                    cloudUpdatedAt: serverTimestamp()
+                }, { merge: true });
+            } catch (error) {
+                authToast('Cloud sync paused', 'Progress is still saved locally on this device.', '!');
+                console.warn('Firestore save failed:', error);
+            }
+        }
+
+        window.queueCloudSave = function(data) {
+            if (!activeUser || !cloudLoaded) return;
+            clearTimeout(cloudSaveTimer);
+            cloudSaveTimer = setTimeout(() => saveCloudDataNow(data), 1200);
+        };
+
+        async function loadCloudData(user) {
+            activeUser = user;
+            cloudLoaded = false;
+            try {
+                const ref = doc(db, 'users', user.uid);
+                const snap = await getDoc(ref);
+                if (snap.exists()) {
+                    window.applyPushAppCloudData?.(snap.data());
+                    authToast('Cloud progress loaded', 'Your PushApp data is synced.', '✓');
+                } else {
+                    await saveCloudDataNow(window.getPushAppCloudData?.());
+                    authToast('Cloud profile created', 'Your local progress is backed up.', '✓');
+                }
+                cloudLoaded = true;
+            } catch (error) {
+                cloudLoaded = true;
+                authToast('Using local backup', 'Cloud data could not load, so local progress is active.', '!');
+                console.warn('Firestore load failed:', error);
+            }
         }
 
         window.pushAppSignUp = async function() {
@@ -1347,7 +1581,7 @@
             authToast('Signed out', 'Your local data is still saved on this device.', '✓');
         };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             const signedOut = document.getElementById('authSignedOut');
             const status = document.getElementById('authStatus');
             const profileStatus = document.getElementById('profileAuthStatus');
@@ -1356,6 +1590,7 @@
             const profileSignedOut = document.getElementById('profileSignedOut');
 
             if (user) {
+                activeUser = user;
                 const lastAuthAt = parseInt(localStorage.getItem('pushApp_LastAuthAt')) || Date.now();
                 localStorage.setItem('pushApp_LastAuthAt', String(lastAuthAt));
 
@@ -1366,6 +1601,7 @@
                     return;
                 }
 
+                await loadCloudData(user);
                 hideAuthOverlay();
                 signedOut.style.display = 'grid';
                 status.innerText = user.email || 'Signed in';
@@ -1374,6 +1610,8 @@
                 if (profileSignedIn) profileSignedIn.style.display = 'block';
                 if (profileSignedOut) profileSignedOut.style.display = 'none';
             } else {
+                activeUser = null;
+                cloudLoaded = false;
                 signedOut.style.display = 'grid';
                 status.innerText = 'Signed out';
                 if (profileStatus) profileStatus.innerText = 'Signed out';
