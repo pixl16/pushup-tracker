@@ -206,12 +206,6 @@
         .pr-card { background: #121212; padding: 10px; border-radius: 8px; border: 1px solid #2d2d2d; }
         .pr-title { font-size: 0.75rem; color: #888; text-transform: uppercase; }
         .pr-value { font-size: 1.2rem; font-weight: bold; color: #4CAF50; margin-top: 2px; }
-        .reminder-btn { width: 100%; background-color: #333; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .reminder-panel { width: 100%; background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 14px; padding: 12px; box-sizing: border-box; }
-        .reminder-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; }
-        .reminder-copy { color: #888; font-size: 0.72rem; line-height: 1.3; margin-top: 3px; }
-        .reminder-select { background: #121212; border: 1px solid #2d2d2d; color: #fff; border-radius: 8px; padding: 8px; font: inherit; font-size: 0.82rem; }
-        .reminder-status { color: #888; font-size: 0.72rem; margin-top: 8px; }
         
         /* Marketplace UI Cards */
         .shop-item { display: flex; align-items: center; justify-content: space-between; background: #121212; padding: 12px; border-radius: 8px; border: 1px solid #2d2d2d; margin-bottom: 8px; }
@@ -426,22 +420,6 @@
                 <div class="pr-value" id="prPlank">0s</div>
             </div>
         </div>
-        <div class="reminder-panel">
-            <div class="reminder-row">
-                <div>
-                    <div class="stat-label">Accountability Reminders</div>
-                    <div class="reminder-copy">Sends workout nudges while PushApp is open or installed and running.</div>
-                </div>
-                <select class="reminder-select" id="reminderInterval" onchange="changeReminderInterval()">
-                    <option value="30">30 min</option>
-                    <option value="60">1 hr</option>
-                    <option value="120">2 hr</option>
-                    <option value="240">4 hr</option>
-                </select>
-            </div>
-            <button class="reminder-btn" id="reminderToggleBtn" onclick="toggleReminders()">Enable Reminders</button>
-            <div class="reminder-status" id="reminderStatus">Reminders are off.</div>
-        </div>
     </div>
 
     <div id="view-progress" class="app-view">
@@ -600,10 +578,6 @@
         let isFocusActive = false;
         let focusSessionsCompleted = parseInt(localStorage.getItem('pushApp_FocusSessionsCompleted')) || 0;
         let focus45SessionsCompleted = parseInt(localStorage.getItem('pushApp_Focus45SessionsCompleted')) || 0;
-        let reminderTimer = null;
-        let remindersEnabled = localStorage.getItem('pushApp_RemindersEnabled') === 'true';
-        let reminderIntervalMinutes = parseInt(localStorage.getItem('pushApp_ReminderInterval')) || 60;
-        let lastReminderAt = parseInt(localStorage.getItem('pushApp_LastReminderAt')) || 0;
 
         const morningQuests = [
             { id: 'bed', label: '🛏️ Make the bed', xp: 15 },
@@ -810,8 +784,6 @@
                 resetFocusChamberUI();
                 showToast('Focus ended', 'You left the app and lost 20 XP.', '!');
                 addXP(-20);
-            } else if (!document.hidden) {
-                sendReminderIfNeeded(false);
             }
         });
 
@@ -1142,97 +1114,6 @@
             }
         }
 
-        function getReminderMessage() {
-            const todayPushupsDone = (appHistory[todayStr].pushups || 0) >= goals.pushups;
-            const todayPlankDone = (appHistory[todayStr].plank || 0) >= goals.plank;
-
-            if (todayPushupsDone && todayPlankDone) return null;
-            if (!todayPushupsDone && !todayPlankDone) return `Push-ups and plank are still open. ${goals.pushups - (appHistory[todayStr].pushups || 0)} push-ups and ${goals.plank - (appHistory[todayStr].plank || 0)}s plank to go.`;
-            if (!todayPushupsDone) return `${goals.pushups - (appHistory[todayStr].pushups || 0)} push-ups left for today's goal.`;
-            return `${goals.plank - (appHistory[todayStr].plank || 0)}s plank left for today's goal.`;
-        }
-
-        function updateReminderUI() {
-            const btn = document.getElementById('reminderToggleBtn');
-            const status = document.getElementById('reminderStatus');
-            const interval = document.getElementById('reminderInterval');
-            if (!btn || !status || !interval) return;
-
-            interval.value = String(reminderIntervalMinutes);
-            btn.innerText = remindersEnabled ? 'Disable Reminders' : 'Enable Reminders';
-            btn.style.backgroundColor = remindersEnabled ? '#4CAF50' : '#333';
-            btn.style.color = remindersEnabled ? '#000' : '#fff';
-            status.innerText = remindersEnabled
-                ? `Reminders are on every ${reminderIntervalMinutes} minutes while the app is active.`
-                : 'Reminders are off.';
-        }
-
-        function sendReminderIfNeeded(force = false) {
-            if (!remindersEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
-            const message = getReminderMessage();
-            if (!message) {
-                showToast('Goals complete', 'No reminders needed for today.', '✓');
-                return;
-            }
-
-            const now = Date.now();
-            if (!force && now - lastReminderAt < reminderIntervalMinutes * 60 * 1000) return;
-
-            lastReminderAt = now;
-            localStorage.setItem('pushApp_LastReminderAt', String(lastReminderAt));
-            new Notification('PushApp reminder', {
-                body: message,
-                icon: 'PushApp Logo.png',
-                badge: 'PushApp Logo.png'
-            });
-        }
-
-        function startReminderScheduler() {
-            clearInterval(reminderTimer);
-            if (!remindersEnabled) {
-                updateReminderUI();
-                return;
-            }
-            reminderTimer = setInterval(() => sendReminderIfNeeded(false), 60 * 1000);
-            updateReminderUI();
-        }
-
-        window.changeReminderInterval = function() {
-            const interval = document.getElementById('reminderInterval');
-            reminderIntervalMinutes = parseInt(interval.value) || 60;
-            localStorage.setItem('pushApp_ReminderInterval', String(reminderIntervalMinutes));
-            startReminderScheduler();
-            showToast('Reminder interval updated', `Reminders set to every ${reminderIntervalMinutes} minutes.`, '✓');
-        };
-
-        window.toggleReminders = async function() {
-            triggerHaptic();
-            if (!("Notification" in window)) {
-                showToast('Not supported', 'This browser does not support notifications.', '!');
-                return;
-            }
-
-            if (remindersEnabled) {
-                remindersEnabled = false;
-                localStorage.setItem('pushApp_RemindersEnabled', 'false');
-                clearInterval(reminderTimer);
-                updateReminderUI();
-                showToast('Reminders disabled', 'Accountability reminders are off.', '✓');
-                return;
-            }
-
-            const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
-            if (permission !== "granted") {
-                showToast('Permission needed', 'Allow notifications to use reminders.', '!');
-                return;
-            }
-
-            remindersEnabled = true;
-            localStorage.setItem('pushApp_RemindersEnabled', 'true');
-            startReminderScheduler();
-            sendReminderIfNeeded(true);
-            showToast('Reminders enabled', 'PushApp will nudge you while the app is active.', '✓');
-        };
 
         function calculateAngle(a, b, c) {
             let radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
@@ -1372,7 +1253,6 @@
         updateUI();
         checkAchievements();
         awardDailyLoginBonus();
-        startReminderScheduler();
 
         const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
         pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
