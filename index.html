@@ -148,6 +148,21 @@
         .stat-chip { background: #121212; border: 1px solid #2d2d2d; border-radius: 10px; padding: 10px 8px; box-sizing: border-box; }
         .stat-label { color: #888; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
         .stat-value { color: #fff; font-size: 1rem; font-weight: 800; margin-top: 3px; }
+        .profile-hero { display: grid; grid-template-columns: 54px 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+        .profile-avatar { width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: #121212; border: 1px solid #2d2d2d; color: #4CAF50; font-size: 1.4rem; font-weight: 900; }
+        .profile-name { font-size: 1rem; font-weight: 900; margin-bottom: 3px; }
+        .profile-subtitle { color: #888; font-size: 0.74rem; line-height: 1.25; }
+        .profile-edit { display: grid; grid-template-columns: 1fr 70px; gap: 8px; margin: 12px 0; }
+        .profile-edit select { grid-column: 1 / -1; }
+        .profile-field { width: 100%; box-sizing: border-box; background: #121212; border: 1px solid #2d2d2d; color: #fff; border-radius: 8px; padding: 10px; font-size: 0.86rem; font: inherit; }
+        .profile-save { grid-column: 1 / -1; border: none; border-radius: 10px; background: #4CAF50; color: #000; padding: 10px; font-weight: 900; cursor: pointer; }
+        .mini-stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .fame-list { display: flex; flex-direction: column; gap: 8px; }
+        .fame-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; background: #121212; border: 1px solid #2d2d2d; border-radius: 8px; padding: 10px; }
+        .fame-rank { color: #4CAF50; font-weight: 900; text-align: center; }
+        .fame-title { font-size: 0.82rem; font-weight: 800; margin-bottom: 2px; }
+        .fame-detail { color: #888; font-size: 0.68rem; }
+        .fame-value { color: #fff; font-size: 0.9rem; font-weight: 900; white-space: nowrap; }
         .quick-focus { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; }
         .quick-focus #focusTimeDisplay { font-size: 2.4rem; }
         .quick-focus .focus-circle-container { width: auto; height: auto; margin: 0; justify-content: flex-start; }
@@ -207,6 +222,22 @@
         .badge-name { font-size: 0.82rem; font-weight: bold; margin-bottom: 2px; }
         .badge-desc { font-size: 0.68rem; color: #888; line-height: 1.25; }
         .badge-xp { color: #ff9800; font-size: 0.7rem; font-weight: 800; white-space: nowrap; }
+        .toast-stack { position: fixed; top: calc(env(safe-area-inset-top, 20px) + 12px); left: 50%; transform: translateX(-50%); width: min(92vw, 390px); display: flex; flex-direction: column; gap: 8px; z-index: 10000; pointer-events: none; }
+        .app-toast { background: rgba(30, 30, 30, 0.94); border: 1px solid rgba(76, 175, 80, 0.45); box-shadow: 0 12px 30px rgba(0,0,0,0.45); border-radius: 12px; padding: 11px 12px; display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; opacity: 0; transform: translateY(-10px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .app-toast.show { opacity: 1; transform: translateY(0); }
+        .toast-icon { color: #4CAF50; font-weight: 900; text-align: center; }
+        .toast-title { font-size: 0.84rem; font-weight: 800; margin-bottom: 2px; }
+        .toast-message { color: #aaa; font-size: 0.74rem; line-height: 1.25; }
+        .auth-card { width: 100%; max-width: 400px; background: #1e1e1e; border: 1px solid #2d2d2d; border-radius: 14px; padding: 14px; margin-bottom: 12px; box-sizing: border-box; }
+        .auth-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .auth-title { font-weight: 900; font-size: 0.95rem; }
+        .auth-status { color: #888; font-size: 0.72rem; text-align: right; overflow-wrap: anywhere; }
+        .auth-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .auth-field { width: 100%; box-sizing: border-box; background: #121212; border: 1px solid #2d2d2d; color: #fff; border-radius: 8px; padding: 10px; font: inherit; font-size: 0.86rem; }
+        .auth-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .auth-btn { border: none; border-radius: 10px; padding: 10px; font-weight: 900; cursor: pointer; background: #333; color: #fff; }
+        .auth-btn.primary { background: #4CAF50; color: #000; }
+        .auth-btn.ghost { background: #121212; border: 1px solid #2d2d2d; color: #aaa; }
     </style>
 </head>
 <body>
@@ -215,10 +246,29 @@
         <img src="PushApp Logo.png" class="splash-logo" alt="PushApp Logo">
         <div class="spinner"></div>
     </div>
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
     <div class="header-ui">
         <h1>PushApp</h1>
         <div class="streak-badge" id="streakDisplay">🔥 0 Days</div>
+    </div>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-title">Account</div>
+            <div class="auth-status" id="authStatus">Signed out</div>
+        </div>
+        <div class="auth-grid" id="authSignedOut">
+            <input class="auth-field" id="authEmail" type="email" autocomplete="email" placeholder="Email">
+            <input class="auth-field" id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+            <div class="auth-actions">
+                <button class="auth-btn primary" onclick="pushAppSignIn()">Log In</button>
+                <button class="auth-btn" onclick="pushAppSignUp()">Sign Up</button>
+            </div>
+        </div>
+        <div class="auth-grid" id="authSignedIn" style="display: none;">
+            <button class="auth-btn ghost" onclick="pushAppSignOut()">Sign Out</button>
+        </div>
     </div>
 
     <div id="view-today" class="app-view active-view">
@@ -316,6 +366,48 @@
             <div class="heatmap-container" id="heatmapGrid"></div>
         </div>
         <details class="compact-card" open>
+            <summary>Profile</summary>
+            <div class="details-body">
+                <div class="profile-hero">
+                    <div class="profile-avatar" id="profileAvatar">P</div>
+                    <div>
+                        <div class="profile-name" id="profileName">PushApp Athlete</div>
+                        <div class="profile-subtitle" id="profileSubtitle">Level 1 · 0 XP wallet</div>
+                    </div>
+                </div>
+                <div class="profile-edit">
+                    <input class="profile-field" id="profileNameInput" maxlength="24" placeholder="Display name">
+                    <input class="profile-field" id="profileAvatarInput" maxlength="2" placeholder="P">
+                    <select class="profile-field" id="profileTitleInput"></select>
+                    <button class="profile-save" onclick="saveLocalProfile()">Save Profile</button>
+                </div>
+                <div class="mini-stat-grid">
+                    <div class="stat-chip">
+                        <div class="stat-label">Total Push-ups</div>
+                        <div class="stat-value" id="profileTotalPushups">0</div>
+                    </div>
+                    <div class="stat-chip">
+                        <div class="stat-label">Total Plank</div>
+                        <div class="stat-value" id="profileTotalPlank">0s</div>
+                    </div>
+                    <div class="stat-chip">
+                        <div class="stat-label">Achievements</div>
+                        <div class="stat-value" id="profileAchievements">0/19</div>
+                    </div>
+                    <div class="stat-chip">
+                        <div class="stat-label">Theme</div>
+                        <div class="stat-value" id="profileTheme">Default</div>
+                    </div>
+                </div>
+            </div>
+        </details>
+        <details class="compact-card">
+            <summary>Hall of Fame</summary>
+            <div class="details-body">
+                <div class="fame-list" id="hallOfFameList"></div>
+            </div>
+        </details>
+        <details class="compact-card" open>
             <summary>Achievements</summary>
             <div class="details-body">
                 <div class="achievement-summary" id="achievementSummary">0 of 0 unlocked</div>
@@ -365,6 +457,25 @@
             }
         }
 
+        function showToast(title, message, icon = '✓') {
+            const stack = document.getElementById('toastStack');
+            const toast = document.createElement('div');
+            toast.className = 'app-toast';
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div>
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            stack.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 250);
+            }, 3200);
+        }
+
         const videoElement = document.getElementById('webcam');
         const canvasElement = document.getElementById('output_canvas');
         const canvasCtx = canvasElement.getContext('2d');
@@ -400,6 +511,12 @@
 
         if (isNaN(userLevelXP)) userLevelXP = legacyXP;
         if (isNaN(userWalletXP)) userWalletXP = legacyXP;
+
+        let localProfile = JSON.parse(localStorage.getItem('pushApp_LocalProfile')) || {
+            name: 'PushApp Athlete',
+            avatar: 'P',
+            title: ''
+        };
 
         let userLevel = parseInt(localStorage.getItem('pushApp_Level')) || 1;
         let completedRoutineTasks = JSON.parse(localStorage.getItem(`pushApp_Routine_${todayStr}`)) || [];
@@ -521,9 +638,9 @@
                     applyGlobalTheme(themeId);
                     updateGamificationUI();
                     checkAchievements();
-                    alert(`🎨 Theme Unlocked & Equipped! Your dashboard style has evolved.`);
+                    showToast('Theme unlocked', 'Your dashboard style has been equipped.', '✓');
                 } else {
-                    alert(`❌ Insufficient Funds! You need ${cost - userWalletXP} more XP points to claim this skin.`);
+                    showToast('Not enough XP', `You need ${cost - userWalletXP} more XP to claim this theme.`, '!');
                 }
             }
         };
@@ -605,7 +722,7 @@
 
         function completeFocusSession() {
             triggerHaptic();
-            alert("🎉 Outstanding work! The Chamber has safely powered down. You maintained complete focus and earned +50 XP!");
+            showToast('Focus complete', 'You maintained focus and earned +50 XP.', '✓');
             focusSessionsCompleted++;
             if (focusDurationMinutes >= 45) focus45SessionsCompleted++;
             localStorage.setItem('pushApp_FocusSessionsCompleted', focusSessionsCompleted);
@@ -633,7 +750,7 @@
                 clearInterval(focusTimer);
                 isFocusActive = false;
                 resetFocusChamberUI();
-                alert("💥 FOCUS CHAMBER COLLAPSED! You left the app to check something else. Penalized: -20 XP.");
+                showToast('Focus ended', 'You left the app and lost 20 XP.', '!');
                 addXP(-20);
             }
         });
@@ -651,7 +768,7 @@
                 userWalletXP += levelBonus;
                 xpNeeded = userLevel * 100;
                 triggerHaptic();
-                alert(`🚀 LEVEL UP! You reached Level ${userLevel} and earned +${levelBonus} bonus wallet XP!`);
+                showToast('Level up', `You reached Level ${userLevel} and earned +${levelBonus} wallet XP.`, '↑');
             }
             if (userLevelXP < 0) userLevelXP = 0;
             if (userWalletXP < 0) userWalletXP = 0;
@@ -675,7 +792,7 @@
             lastLoginBonusDate = todayStr;
             localStorage.setItem('pushApp_LastLoginBonusDate', todayStr);
             addXP(10);
-            alert('🎁 Daily Check-in Bonus: +10 XP!');
+            showToast('Daily check-in', 'You earned +10 XP.', '✓');
         }
 
         function getTotalStat(statName) {
@@ -684,6 +801,86 @@
 
         function hasPushupDayAtRatio(ratio) {
             return Object.values(appHistory).some(entry => (entry.pushups || 0) >= goals.pushups * ratio);
+        }
+
+        function formatSeconds(totalSeconds) {
+            if (totalSeconds < 60) return `${totalSeconds}s`;
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return seconds ? `${minutes}m ${seconds}s` : `${minutes}m`;
+        }
+
+        function getHistoryEntries() {
+            return Object.entries(appHistory).map(([date, entry]) => ({
+                date,
+                pushups: entry.pushups || 0,
+                plank: entry.plank || 0
+            }));
+        }
+
+        function getBestHistoryDay(metric) {
+            return getHistoryEntries().reduce((best, entry) => entry[metric] > best[metric] ? entry : best, { date: 'No data yet', pushups: 0, plank: 0 });
+        }
+
+        function renderProfile() {
+            const totalPushups = getTotalStat('pushups');
+            const totalPlank = getTotalStat('plank');
+            const unlockedCount = achievements.filter(badge => unlockedAchievements.includes(badge.id)).length;
+            const activeThemeLabel = (shopThemes.find(theme => theme.id === activeTheme)?.label || 'Default').replace(/[^\w\s-]/g, '').trim();
+            const titleSelect = document.getElementById('profileTitleInput');
+            const unlockedTitles = achievements.filter(badge => unlockedAchievements.includes(badge.id));
+            const selectedTitle = localProfile.title && unlockedTitles.some(badge => badge.name === localProfile.title) ? localProfile.title : '';
+
+            document.getElementById('profileAvatar').innerText = (localProfile.avatar || 'P').slice(0, 2).toUpperCase();
+            document.getElementById('profileName').innerText = localProfile.name || 'PushApp Athlete';
+            document.getElementById('profileSubtitle').innerText = `${selectedTitle || 'No title equipped'} · Level ${userLevel} · ${userWalletXP} XP wallet`;
+            document.getElementById('profileNameInput').value = localProfile.name || '';
+            document.getElementById('profileAvatarInput').value = localProfile.avatar || '';
+            titleSelect.innerHTML = `<option value="">No title equipped</option>` + unlockedTitles.map(badge => `<option value="${badge.name}">${badge.name}</option>`).join('');
+            titleSelect.value = selectedTitle;
+            document.getElementById('profileTotalPushups').innerText = totalPushups;
+            document.getElementById('profileTotalPlank').innerText = formatSeconds(totalPlank);
+            document.getElementById('profileAchievements').innerText = `${unlockedCount}/${achievements.length}`;
+            document.getElementById('profileTheme').innerText = activeThemeLabel.replace('Default Midnight', 'Default');
+        }
+
+        window.saveLocalProfile = function() {
+            triggerHaptic();
+            const name = document.getElementById('profileNameInput').value.trim() || 'PushApp Athlete';
+            const avatar = document.getElementById('profileAvatarInput').value.trim().slice(0, 2).toUpperCase() || name.charAt(0).toUpperCase() || 'P';
+            const title = document.getElementById('profileTitleInput').value;
+
+            localProfile = { name, avatar, title };
+            localStorage.setItem('pushApp_LocalProfile', JSON.stringify(localProfile));
+            renderProfile();
+            showToast('Profile saved', 'Your local profile was updated on this device.', '✓');
+        };
+
+        function renderHallOfFame() {
+            const bestPushupDay = getBestHistoryDay('pushups');
+            const bestPlankDay = getBestHistoryDay('plank');
+            const rows = [
+                { title: 'Best Push-up Day', detail: bestPushupDay.date, value: `${bestPushupDay.pushups} reps` },
+                { title: 'Longest Plank Hold', detail: 'Personal record', value: formatSeconds(prs.longestPlank || 0) },
+                { title: 'Best Plank Day', detail: bestPlankDay.date, value: formatSeconds(bestPlankDay.plank) },
+                { title: 'Current Streak', detail: 'Daily push-up goal', value: `${calculateStreak()} days` }
+            ];
+
+            const container = document.getElementById('hallOfFameList');
+            container.innerHTML = '';
+            rows.forEach((row, index) => {
+                const item = document.createElement('div');
+                item.className = 'fame-row';
+                item.innerHTML = `
+                    <div class="fame-rank">#${index + 1}</div>
+                    <div>
+                        <div class="fame-title">${row.title}</div>
+                        <div class="fame-detail">${row.detail}</div>
+                    </div>
+                    <div class="fame-value">${row.value}</div>
+                `;
+                container.appendChild(item);
+            });
         }
 
         function checkAchievements() {
@@ -698,7 +895,8 @@
 
             if (newlyUnlocked.length > 0) {
                 localStorage.setItem('pushApp_Achievements', JSON.stringify(unlockedAchievements));
-                alert(`🏅 Achievement Unlocked: ${newlyUnlocked[0].name}! +${newlyUnlocked[0].xp} wallet XP`);
+                const extraCount = newlyUnlocked.length > 1 ? ` and ${newlyUnlocked.length - 1} more` : '';
+                showToast('Achievement unlocked', `${newlyUnlocked[0].name}${extraCount}. +${newlyUnlocked[0].xp} wallet XP.`, '✓');
             }
             renderAchievements();
         }
@@ -764,6 +962,7 @@
             let xpNeeded = userLevel * 100;
             let pct = (userLevelXP / xpNeeded) * 100;
             document.getElementById('xpBarFill').style.width = `${pct}%`;
+            renderProfile();
         }
 
         function setProgress(percent) {
@@ -802,6 +1001,8 @@
             
             document.getElementById('prPushups').innerText = `${prs.maxPushups} reps`;
             document.getElementById('prPlank').innerText = `${prs.longestPlank}s`;
+            renderProfile();
+            renderHallOfFame();
         }
 
         window.changeDailyGoal = function() {
@@ -884,7 +1085,7 @@
         window.toggleReminders = function() {
             triggerHaptic();
             if (!("Notification" in window)) return;
-            Notification.requestPermission().then(p => { if (p === "granted") alert("🔔 Accountability active!"); });
+            Notification.requestPermission().then(p => { if (p === "granted") showToast('Reminders enabled', 'Accountability notifications are active.', '✓'); });
         };
 
         function calculateAngle(a, b, c) {
@@ -1034,6 +1235,91 @@
             onFrame: async () => { await pose.send({image: videoElement}); },
             width: 640,
             height: 480
+        });
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBt3RGMsGNJXNumbNpMbf5J45je_82hNJ0",
+            authDomain: "pushapp-a448c.firebaseapp.com",
+            projectId: "pushapp-a448c",
+            storageBucket: "pushapp-a448c.firebasestorage.app",
+            messagingSenderId: "869195098196",
+            appId: "1:869195098196:web:7cb8179aaea3eb8963e5c1",
+            measurementId: "G-3QYY1EZ7G6"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+
+        function getAuthFields() {
+            return {
+                email: document.getElementById('authEmail').value.trim(),
+                password: document.getElementById('authPassword').value
+            };
+        }
+
+        function authToast(title, message, icon = '✓') {
+            if (window.showToast) window.showToast(title, message, icon);
+        }
+
+        window.pushAppSignUp = async function() {
+            const { email, password } = getAuthFields();
+            if (!email || password.length < 6) {
+                authToast('Check details', 'Use an email and a password with at least 6 characters.', '!');
+                return;
+            }
+
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                authToast('Account created', 'You are signed in to PushApp.', '✓');
+            } catch (error) {
+                authToast('Sign up failed', error.message.replace('Firebase: ', ''), '!');
+            }
+        };
+
+        window.pushAppSignIn = async function() {
+            const { email, password } = getAuthFields();
+            if (!email || !password) {
+                authToast('Missing details', 'Enter your email and password.', '!');
+                return;
+            }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                authToast('Signed in', 'Welcome back to PushApp.', '✓');
+            } catch (error) {
+                authToast('Log in failed', error.message.replace('Firebase: ', ''), '!');
+            }
+        };
+
+        window.pushAppSignOut = async function() {
+            await signOut(auth);
+            authToast('Signed out', 'Your local data is still saved on this device.', '✓');
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            const signedOut = document.getElementById('authSignedOut');
+            const signedIn = document.getElementById('authSignedIn');
+            const status = document.getElementById('authStatus');
+
+            if (user) {
+                signedOut.style.display = 'none';
+                signedIn.style.display = 'grid';
+                status.innerText = user.email || 'Signed in';
+            } else {
+                signedOut.style.display = 'grid';
+                signedIn.style.display = 'none';
+                status.innerText = 'Signed out';
+            }
         });
     </script>
 </body>
