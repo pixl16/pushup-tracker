@@ -18,6 +18,8 @@
     const scriptElement = document.createElement('script');
     scriptElement.textContent = appScript;
     document.body.appendChild(scriptElement);
+
+    await import('./auth.js');
   } catch (error) {
     console.error(error);
     const statusText = document.getElementById('statusText');
